@@ -1,0 +1,74 @@
+{
+  "api_version": 1,
+  "id": "demo-agent",
+  "kind": "agent",
+  "name": "Démo · agent terminal",
+  "icon": "terminal",
+  "color": "mint",
+  "description": "Client terminal du provider de démonstration, sans modèle IA.",
+  "executables": [
+    "/usr/bin/python3"
+  ],
+  "command": [
+    "{executable}",
+    "{bundle}/agent.py",
+    "--model",
+    "{model}"
+  ],
+  "modes": [
+    "terminal"
+  ],
+  "routing": {
+    "provider_field": "provider",
+    "model_field": "model",
+    "required": true
+  },
+  "fields": [
+    {
+      "key": "provider",
+      "label": "Provider PiHub",
+      "group": "Routage",
+      "type": "provider",
+      "default": ""
+    },
+    {
+      "key": "model",
+      "label": "Modèle (vide = celui du provider)",
+      "group": "Routage",
+      "type": "model",
+      "default": ""
+    },
+    {
+      "key": "project",
+      "label": "Dossier de travail",
+      "group": "Session",
+      "type": "directory",
+      "default": "{root}"
+    },
+    {
+      "key": "executable",
+      "label": "Interpréteur Python",
+      "group": "Avancé",
+      "type": "file",
+      "default": ""
+    },
+    {
+      "key": "extra_args",
+      "label": "Arguments supplémentaires (JSON)",
+      "group": "Avancé",
+      "type": "text",
+      "default": "[]"
+    }
+  ],
+  "handlers": {
+    "command": "handler.py:command",
+    "start": "handler.py:start",
+    "terminal": "handler.py:terminal",
+    "stop": "handler.py:stop",
+    "restart": "handler.py:restart",
+    "status": "handler.py:status",
+    "preview": "handler.py:preview",
+    "model_change": "handler.py:model_change",
+    "logs": "handler.py:logs"
+  }
+}

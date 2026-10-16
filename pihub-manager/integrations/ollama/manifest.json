@@ -1,0 +1,114 @@
+{
+  "id": "ollama",
+  "multi_model": true,
+  "kind": "provider",
+  "name": "Ollama",
+  "icon": "circle.hexagongrid",
+  "color": "mint",
+  "description": "Daemon Ollama · catalogue natif et API compatible",
+  "executables": [
+    "ollama",
+    "/Applications/Ollama.app/Contents/Resources/ollama"
+  ],
+  "command": [
+    "{executable}",
+    "serve"
+  ],
+  "fields": [
+    {
+      "key": "host",
+      "label": "Adresse d’écoute",
+      "group": "Réseau",
+      "type": "text",
+      "default": "127.0.0.1"
+    },
+    {
+      "key": "port",
+      "label": "Port HTTP",
+      "group": "Réseau",
+      "type": "number",
+      "default": "11434"
+    },
+    {
+      "key": "key_env",
+      "label": "Variable de clé API",
+      "group": "Réseau",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "model",
+      "label": "Modèle à précharger",
+      "group": "Modèle",
+      "type": "model",
+      "default": ""
+    },
+    {
+      "key": "context",
+      "label": "Contexte par défaut",
+      "group": "Modèle",
+      "type": "number",
+      "default": "32768"
+    },
+    {
+      "key": "keep_alive",
+      "label": "Durée de résidence",
+      "group": "Modèle",
+      "type": "text",
+      "default": "10m"
+    },
+    {
+      "key": "executable",
+      "label": "Chemin de l’exécutable",
+      "group": "Avancé",
+      "type": "file",
+      "default": ""
+    },
+    {
+      "key": "extra_args",
+      "label": "Arguments supplémentaires (JSON)",
+      "group": "Avancé",
+      "type": "text",
+      "default": "[]"
+    }
+  ],
+  "env": {
+    "OLLAMA_HOST": "{host}:{port}",
+    "OLLAMA_CONTEXT_LENGTH": "{context}",
+    "OLLAMA_KEEP_ALIVE": "{keep_alive}"
+  },
+  "health": "/api/tags",
+  "model_format": "ollama",
+  "requires_model": false,
+  "port_in_environment": true,
+  "process_signatures": [
+    "ollama serve"
+  ],
+  "handlers": {
+    "status": "handler.py:status",
+    "test": "handler.py:_hook_test",
+    "start": "handler.py:_hook_start",
+    "stop": "handler.py:_hook_stop",
+    "restart": "handler.py:_hook_restart",
+    "preview": "handler.py:_hook_preview",
+    "adopt": "handler.py:_hook_adopt",
+    "load": "handler.py:load",
+    "unload": "handler.py:unload",
+    "logs": "handler.py:_hook_logs"
+  },
+  "install": {
+    "summary": "Serveur multi-modèles · binaire macOS officiel",
+    "repository": "https://github.com/ollama/ollama",
+    "revision": "v0.40.5",
+    "verification": "source-reviewed",
+    "prerequisites": [],
+    "executable": "{package}/ollama",
+    "steps": [
+      {
+        "label": "Télécharger et vérifier Ollama (SHA-256)",
+        "download": "https://github.com/ollama/ollama/releases/download/v0.40.5/ollama-darwin.tgz",
+        "sha256": "75f9907dafa2fd4c61b5967de2ebb81ccc17eb28da9172edbad0dbc717474dcf"
+      }
+    ]
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "id": "pi",
+  "kind": "agent",
+  "name": "Pi Agent",
+  "icon": "terminal",
+  "color": "violet",
+  "description": "Assistant de développement · session interactive",
+  "executables": [
+    "{root}/env/pi-client/node_modules/.bin/pi",
+    "pi"
+  ],
+  "command": [
+    "{executable}",
+    "--provider",
+    "pihub",
+    "--model",
+    "{model}",
+    "--thinking",
+    "{thinking}"
+  ],
+  "fields": [
+    {
+      "key": "provider",
+      "label": "Provider PiHub",
+      "group": "Routage",
+      "type": "provider",
+      "default": "splash"
+    },
+    {
+      "key": "model",
+      "label": "Modèle (vide = celui du provider)",
+      "group": "Routage",
+      "type": "model",
+      "default": ""
+    },
+    {
+      "key": "thinking",
+      "label": "Réflexion",
+      "group": "Session",
+      "type": "select",
+      "default": "low",
+      "options": [
+        "off",
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ]
+    },
+    {
+      "key": "project",
+      "label": "Dossier de travail",
+      "group": "Session",
+      "type": "directory",
+      "default": "{root}"
+    },
+    {
+      "key": "tools",
+      "label": "Outils actifs",
+      "group": "Session",
+      "type": "multi_select",
+      "default": "read,bash,edit,write,grep,find,ls",
+      "options": [
+        "read",
+        "bash",
+        "edit",
+        "write",
+        "grep",
+        "find",
+        "ls"
+      ],
+      "option_help": {
+        "read": "Lire le contenu de fichiers.",
+        "bash": "Exécuter des commandes dans le terminal.",
+        "edit": "Modifier une portion existante d’un fichier.",
+        "write": "Créer ou remplacer un fichier.",
+        "grep": "Rechercher du texte dans les fichiers (lecture seule).",
+        "find": "Trouver des fichiers avec un motif (lecture seule).",
+        "ls": "Lister les fichiers et dossiers (lecture seule)."
+      }
+    },
+    {
+      "key": "offline",
+      "label": "Démarrage hors ligne",
+      "group": "Options",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "mcp",
+      "label": "Connexions MCP",
+      "group": "Options",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "executable",
+      "label": "Chemin de l’exécutable",
+      "group": "Avancé",
+      "type": "file",
+      "default": ""
+    },
+    {
+      "key": "extra_args",
+      "label": "Arguments supplémentaires (JSON)",
+      "group": "Avancé",
+      "type": "text",
+      "default": "[]"
+    }
+  ],
+  "flags": {
+    "offline": {
+      "true": [
+        "--offline"
+      ]
+    },
+    "mcp": {
+      "false": [
+        "--no-mcp"
+      ]
+    }
+  },
+  "modes": [
+    "terminal"
+  ],
+  "routing": {
+    "provider_field": "provider",
+    "model_field": "model",
+    "required": true
+  },
+  "handlers": {
+    "command": "handler.py:command",
+    "set_model": "handler.py:set_model",
+    "model_change": "handler.py:_hook_model_change",
+    "status": "handler.py:_hook_status",
+    "start": "handler.py:_hook_start",
+    "terminal": "handler.py:_hook_terminal",
+    "stop": "handler.py:_hook_stop",
+    "restart": "handler.py:_hook_restart",
+    "preview": "handler.py:_hook_preview",
+    "logs": "handler.py:_hook_logs"
+  },
+  "install": {
+    "summary": "Agent de code · installation npm locale",
+    "repository": "https://github.com/badlogic/pi-mono",
+    "revision": "0.73.1",
+    "commit": "781152fc24841dc54b22284514604048ebe5e2c9",
+    "verification": "runtime-tested",
+    "allow_revision": true,
+    "prerequisites": [
+      "npm",
+      "node"
+    ],
+    "executable": "{package}/node_modules/.bin/pi",
+    "steps": [
+      {
+        "label": "Installer Pi et ses dépendances localement",
+        "argv": [
+          "npm",
+          "install",
+          "--prefix",
+          "{package}",
+          "--no-audit",
+          "--no-fund",
+          "@mariozechner/pi-coding-agent@{revision}"
+        ]
+      }
+    ]
+  }
+}

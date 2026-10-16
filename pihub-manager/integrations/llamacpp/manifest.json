@@ -1,0 +1,310 @@
+{
+  "id": "llamacpp",
+  "kind": "provider",
+  "name": "llama.cpp",
+  "icon": "cpu",
+  "color": "orange",
+  "description": "Serveur GGUF · accélération Metal",
+  "executables": [
+    "llama-server",
+    "{root}/engine/llama.cpp/build/bin/llama-server"
+  ],
+  "command": [
+    "{executable}",
+    "--model",
+    "{model}",
+    "--host",
+    "{host}",
+    "--port",
+    "{port}",
+    "--ctx-size",
+    "{context}",
+    "--n-gpu-layers",
+    "{gpu_layers}",
+    "--threads",
+    "{threads}",
+    "--parallel",
+    "{parallel}",
+    "--temp",
+    "{temperature}",
+    "--top-p",
+    "{top_p}",
+    "--top-k",
+    "{top_k}",
+    "--reasoning-budget",
+    "{thinking_budget}",
+    "--reasoning-format",
+    "{reasoning_format}"
+  ],
+  "fields": [
+    {
+      "key": "host",
+      "label": "Adresse d’écoute",
+      "group": "Réseau",
+      "type": "text",
+      "default": "127.0.0.1"
+    },
+    {
+      "key": "port",
+      "label": "Port HTTP",
+      "group": "Réseau",
+      "type": "number",
+      "default": "18001"
+    },
+    {
+      "key": "key_env",
+      "label": "Variable de clé API",
+      "group": "Réseau",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "model",
+      "label": "Modèle / chemin",
+      "group": "Modèle",
+      "type": "model",
+      "default": ""
+    },
+    {
+      "key": "context",
+      "label": "Contexte (tokens)",
+      "group": "Modèle",
+      "type": "number",
+      "default": "32768"
+    },
+    {
+      "key": "gpu_layers",
+      "label": "Couches GPU Metal",
+      "group": "Performance",
+      "type": "slider",
+      "default": "99",
+      "min": 0,
+      "max": 99,
+      "step": 1
+    },
+    {
+      "key": "thinking_budget",
+      "label": "Budget réflexion (-1 = illimité, 0 = désactivé)",
+      "group": "Réflexion",
+      "type": "number",
+      "default": "-1",
+      "min": -1,
+      "max": 131072
+    },
+    {
+      "key": "reasoning_format",
+      "label": "Format de la réflexion",
+      "group": "Réflexion",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        "auto",
+        "none",
+        "deepseek",
+        "deepseek-legacy"
+      ]
+    },
+    {
+      "key": "top_p",
+      "label": "Top P",
+      "group": "Échantillonnage",
+      "type": "slider",
+      "default": "0.95",
+      "min": 0.05,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "key": "top_k",
+      "label": "Top K",
+      "group": "Échantillonnage",
+      "type": "number",
+      "default": "40"
+    },
+    {
+      "key": "metrics",
+      "label": "Métriques Prometheus",
+      "group": "Options",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "jinja",
+      "label": "Templates Jinja / appels d’outils",
+      "group": "Options",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "threads",
+      "label": "Threads CPU",
+      "group": "Performance",
+      "type": "number",
+      "default": "8"
+    },
+    {
+      "key": "parallel",
+      "label": "Requêtes parallèles",
+      "group": "Performance",
+      "type": "number",
+      "default": "1"
+    },
+    {
+      "key": "temperature",
+      "label": "Température par défaut",
+      "group": "Échantillonnage",
+      "type": "slider",
+      "default": "0.7",
+      "min": 0,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "key": "flash",
+      "label": "Flash Attention",
+      "group": "Options",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "executable",
+      "label": "Chemin de l’exécutable",
+      "group": "Avancé",
+      "type": "file",
+      "default": ""
+    },
+    {
+      "key": "extra_args",
+      "label": "Arguments supplémentaires (JSON)",
+      "group": "Avancé",
+      "type": "text",
+      "default": "[]"
+    }
+  ],
+  "flags": {
+    "metrics": {
+      "true": [
+        "--metrics"
+      ]
+    },
+    "jinja": {
+      "true": [
+        "--jinja"
+      ],
+      "false": [
+        "--no-jinja"
+      ]
+    },
+    "flash": {
+      "true": [
+        "--flash-attn",
+        "on"
+      ],
+      "false": [
+        "--flash-attn",
+        "off"
+      ]
+    }
+  },
+  "health": "/health",
+  "model_format": "gguf",
+  "process_signatures": [
+    "llama-server"
+  ],
+  "server_key_env": "LLAMA_API_KEY",
+  "handlers": {
+    "status": "handler.py:_hook_status",
+    "test": "handler.py:_hook_test",
+    "start": "handler.py:_hook_start",
+    "stop": "handler.py:_hook_stop",
+    "restart": "handler.py:_hook_restart",
+    "preview": "handler.py:_hook_preview",
+    "adopt": "handler.py:_hook_adopt",
+    "logs": "handler.py:_hook_logs"
+  },
+  "install": {
+    "summary": "GGUF · compilation native Metal, sans poids",
+    "repository": "https://github.com/ggml-org/llama.cpp.git",
+    "revision": "b76b13379d3b7d67ab0bc424516bb6fd2522bd8e",
+    "verification": "source-reviewed",
+    "allow_revision": true,
+    "prerequisites": [
+      "git",
+      "cmake",
+      "clang"
+    ],
+    "executable": "{package}/build/bin/llama-server",
+    "steps": [
+      {
+        "label": "Initialiser le dépôt isolé",
+        "argv": [
+          "git",
+          "init",
+          "{package}/source"
+        ]
+      },
+      {
+        "label": "Déclarer le dépôt officiel",
+        "argv": [
+          "git",
+          "-C",
+          "{package}/source",
+          "remote",
+          "add",
+          "origin",
+          "{repository}"
+        ]
+      },
+      {
+        "label": "Télécharger la révision sélectionnée",
+        "argv": [
+          "git",
+          "-C",
+          "{package}/source",
+          "fetch",
+          "--depth",
+          "1",
+          "origin",
+          "{revision}"
+        ]
+      },
+      {
+        "label": "Extraire la révision",
+        "argv": [
+          "git",
+          "-C",
+          "{package}/source",
+          "checkout",
+          "--detach",
+          "FETCH_HEAD"
+        ]
+      },
+      {
+        "label": "Configurer Metal",
+        "argv": [
+          "cmake",
+          "-S",
+          "{package}/source",
+          "-B",
+          "{package}/build",
+          "-DGGML_METAL=ON",
+          "-DLLAMA_CURL=OFF"
+        ]
+      },
+      {
+        "label": "Compiler le serveur",
+        "argv": [
+          "cmake",
+          "--build",
+          "{package}/build",
+          "--config",
+          "Release",
+          "--target",
+          "llama-server",
+          "-j",
+          "4"
+        ]
+      }
+    ]
+  }
+}

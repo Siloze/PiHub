@@ -1,0 +1,79 @@
+{
+  "api_version": 1,
+  "id": "demo-provider",
+  "kind": "provider",
+  "name": "Démo · provider HTTP",
+  "icon": "server.rack",
+  "color": "cyan",
+  "description": "Serveur d’écho pédagogique, sans modèle IA ni téléchargement.",
+  "executables": [
+    "/usr/bin/python3"
+  ],
+  "command": [
+    "{executable}",
+    "{bundle}/server.py",
+    "--host",
+    "{host}",
+    "--port",
+    "{port}",
+    "--model",
+    "{model}"
+  ],
+  "health": "/health",
+  "model_format": "any",
+  "process_signatures": [
+    "server.py"
+  ],
+  "fields": [
+    {
+      "key": "model",
+      "label": "Modèle de démonstration",
+      "group": "Modèle",
+      "type": "text",
+      "default": "demo-echo"
+    },
+    {
+      "key": "host",
+      "label": "Adresse",
+      "group": "Réseau",
+      "type": "text",
+      "default": "127.0.0.1"
+    },
+    {
+      "key": "port",
+      "label": "Port",
+      "group": "Réseau",
+      "type": "number",
+      "default": "18190",
+      "min": 1024,
+      "max": 65535
+    },
+    {
+      "key": "executable",
+      "label": "Interpréteur Python",
+      "group": "Avancé",
+      "type": "file",
+      "default": ""
+    },
+    {
+      "key": "extra_args",
+      "label": "Arguments supplémentaires (JSON)",
+      "group": "Avancé",
+      "type": "text",
+      "default": "[]"
+    }
+  ],
+  "handlers": {
+    "status": "handler.py:status",
+    "start": "handler.py:start",
+    "stop": "handler.py:stop",
+    "restart": "handler.py:restart",
+    "preview": "handler.py:preview",
+    "test": "handler.py:test",
+    "adopt": "handler.py:adopt",
+    "logs": "handler.py:logs"
+  },
+  "editor_hints": {
+    "Modèle": "Utilisez demo-echo. Ce serveur renvoie un écho et n’effectue aucune inférence."
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PiHub adapter manifest",
+  "type": "object",
+  "required": ["id", "kind"],
+  "properties": {
+    "install": {"$ref":"catalog.schema.json"},
+    "api_version": {"const":1},
+    "handlers": {"type":"object","additionalProperties":{"type":"string","pattern":".+:[A-Za-z_][A-Za-z0-9_]*$"}},
+    "action_labels": {"type":"object","additionalProperties":{"type":"string"}},
+    "editor_hints": {"type":"object","additionalProperties":{"type":"string"}},
+    "model_field": {"type":"string"},
+    "log_paths": {"type":"array","items":{"type":"string"}},
+    "log_channels": {"type":"object","additionalProperties":{"type":"string"}},
+    "multi_model": {"type":"boolean"},
+    "routing": {"type":"object","required":["provider_field"],"properties":{"provider_field":{"type":"string"},"model_field":{"type":"string"},"required":{"type":"boolean"},"unbound_value":{"type":"string"},"unbound_label":{"type":"string"}}},
+    "id": {"type":"string", "pattern":"^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"},
+    "kind": {"enum":["provider","agent"]},
+    "name": {"type":"string", "minLength":1},
+    "icon": {"type":"string"},
+    "color": {"enum":["violet","cyan","orange","mint","blue"]},
+    "description": {"type":"string"},
+    "executables": {"type":"array","items":{"type":"string"}},
+    "command": {"type":"array","items":{"type":"string"}},
+    "external": {"type":"boolean"},
+    "health": {"type":"string"},
+    "model_format": {"enum":["mlx","gguf","ollama","any"]},
+    "modes": {"type":"array","items":{"enum":["terminal","web"]}},
+    "env": {"type":"object","additionalProperties":{"type":"string"}},
+    "flags": {"type":"object","additionalProperties":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}}},
+    "fields": {
+      "type":"array",
+      "items": {
+        "type":"object",
+        "required":["key","label","group","type","default"],
+        "properties": {
+          "key":{"type":"string","minLength":1},
+          "label":{"type":"string"},
+          "group":{"type":"string"},
+          "type":{"enum":["text","number","slider","select","multi_select","toggle","model","provider","file","directory"]},
+          "default":{"type":"string"},
+          "options":{"type":"array","items":{"type":"string"}},
+          "option_help":{"type":"object","additionalProperties":{"type":"string"}},
+          "min":{"type":"number"},
+          "max":{"type":"number"},
+          "step":{"type":"number","exclusiveMinimum":0}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "id": "codex",
+  "editor_hints": {
+    "Routage": "Un provider personnalisé doit proposer l’API Responses et les outils Codex. Une API Chat Completions seule ne suffit pas."
+  },
+  "kind": "agent",
+  "name": "Codex",
+  "icon": "chevron.left.forwardslash.chevron.right",
+  "color": "mint",
+  "description": "Codex CLI · compte existant ou endpoint Responses",
+  "executables": [
+    "codex",
+    "{home}/.vscode/extensions/openai.chatgpt-*/bin/macos-aarch64/codex"
+  ],
+  "command": [
+    "{executable}"
+  ],
+  "fields": [
+    {
+      "key": "provider",
+      "label": "Routage (natif ou provider PiHub)",
+      "group": "Routage",
+      "type": "provider",
+      "default": "native"
+    },
+    {
+      "key": "model",
+      "label": "Modèle (vide = configuration Codex)",
+      "group": "Routage",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "thinking",
+      "label": "Effort de réflexion",
+      "group": "Session",
+      "type": "select",
+      "default": "medium",
+      "options": [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ]
+    },
+    {
+      "key": "project",
+      "label": "Dossier de travail",
+      "group": "Session",
+      "type": "directory",
+      "default": "{root}"
+    },
+    {
+      "key": "sandbox",
+      "label": "Sandbox",
+      "group": "Permissions",
+      "type": "select",
+      "default": "workspace-write",
+      "options": [
+        "read-only",
+        "workspace-write"
+      ]
+    },
+    {
+      "key": "executable",
+      "label": "Chemin de l’exécutable",
+      "group": "Avancé",
+      "type": "file",
+      "default": ""
+    },
+    {
+      "key": "extra_args",
+      "label": "Arguments supplémentaires (JSON)",
+      "group": "Avancé",
+      "type": "text",
+      "default": "[]"
+    }
+  ],
+  "modes": [
+    "terminal"
+  ],
+  "routing": {
+    "unbound_value": "native",
+    "provider_field": "provider",
+    "model_field": "model",
+    "required": false
+  },
+  "handlers": {
+    "command": "handler.py:command",
+    "set_model": "handler.py:set_model",
+    "model_change": "handler.py:_hook_model_change",
+    "status": "handler.py:_hook_status",
+    "start": "handler.py:_hook_start",
+    "terminal": "handler.py:_hook_terminal",
+    "stop": "handler.py:_hook_stop",
+    "restart": "handler.py:_hook_restart",
+    "preview": "handler.py:_hook_preview",
+    "logs": "handler.py:_hook_logs"
+  },
+  "install": {
+    "summary": "CLI OpenAI · compte natif ou API Responses",
+    "repository": "https://github.com/openai/codex",
+    "revision": "0.162.1",
+    "commit": "7a078f6bb4ce0dc2a81408b334ce52979d92c603",
+    "verification": "source-reviewed",
+    "allow_revision": true,
+    "prerequisites": [
+      "npm",
+      "node"
+    ],
+    "executable": "{package}/node_modules/.bin/codex",
+    "steps": [
+      {
+        "label": "Installer Codex localement",
+        "argv": [
+          "npm",
+          "install",
+          "--prefix",
+          "{package}",
+          "--no-audit",
+          "--no-fund",
+          "@openai/codex@{revision}"
+        ]
+      }
+    ]
+  }
+}

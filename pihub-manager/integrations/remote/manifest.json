@@ -1,0 +1,52 @@
+{
+  "id": "remote",
+  "multi_model": true,
+  "kind": "provider",
+  "name": "API compatible",
+  "icon": "network",
+  "color": "blue",
+  "description": "Connecter un serveur externe OpenAI-compatible",
+  "executables": [],
+  "command": [],
+  "fields": [
+    {
+      "key": "base_url",
+      "label": "URL de base API (avec /v1)",
+      "group": "Connexion",
+      "type": "text",
+      "default": "http://127.0.0.1:1234/v1"
+    },
+    {
+      "key": "key_env",
+      "label": "Variable de clé API",
+      "group": "Connexion",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "model",
+      "label": "Modèle par défaut",
+      "group": "Modèle",
+      "type": "model",
+      "default": ""
+    }
+  ],
+  "external": true,
+  "health": "",
+  "model_format": "any",
+  "process_signatures": [],
+  "handlers": {
+    "status": "handler.py:_hook_status",
+    "test": "handler.py:_hook_test",
+    "logs": "handler.py:_hook_logs"
+  },
+  "install": {
+    "summary": "Connecter un endpoint existant · aucun logiciel à télécharger",
+    "repository": "",
+    "revision": "contract-v1",
+    "verification": "runtime-tested",
+    "prerequisites": [],
+    "executable": "",
+    "steps": []
+  }
+}
