@@ -193,6 +193,7 @@ class HubTests(unittest.TestCase):
              patch.object(hermes_handler, 'executable', return_value='/opt/hermes/bin/hermes'), \
              patch.object(hermes_handler.subprocess, 'run', return_value=listing) as run:
             result = hermes_handler.status(ctx, {})
+        self.assertIsInstance(result['profile_configured'], bool)
         self.assertTrue(result['gateway_initialized'])
         self.assertEqual(run.call_args.args[0], ['/opt/hermes/bin/hermes', '--profile', 'default', 'gateway', 'list'])
         self.assertEqual(run.call_args.kwargs['env']['HERMES_HOME'], str(storage.ROOT / 'hermes'))
@@ -258,13 +259,13 @@ class HubTests(unittest.TestCase):
         with patch('pihub_manager.hub.runtime.processes', return_value={}), \
              patch('pihub_manager.hub.runtime.owned', return_value=None), \
              patch('pihub_manager.hub.runtime.event'), \
-             patch.object(model_changes, 'call') as call:
+             patch.object(model_changes, 'call', side_effect=lambda ctx, action, request: {'ready': True, 'model': 'new-model'} if action == 'status' else {'message': 'ok'}) as call:
             result = model_changes.apply(
                 self.current, registry, plan,
                 {'restart_provider': True, 'confirm_uncertain': True},
             )
-        self.assertIn('Relance du provider demandée', result['message'])
-        self.assertTrue(call.call_args.args[2]['confirm_external'])
+        self.assertIn('Moteur relancé et prêt', result['message'])
+        self.assertTrue(call.call_args_list[0].args[2]['confirm_external'])
 
     def test_custom_agent_process_is_offered_cautious_relaunch(self):
         provider = self.current['providers'][0]
@@ -391,6 +392,11 @@ class HubTests(unittest.TestCase):
         service.action(dict(action='model-delete', id='my/model'))
         self.assertEqual(storage.config()['models'], [])
 
+    def test_custom_model_format_is_preserved_for_custom_provider_manifests(self):
+        model = dict(id='/models/custom/model.exl2', name='Custom EXL2', format='exl2', path='/models/custom/model.exl2', size=0, source='personal')
+        service.action(dict(action='model-save', model=model))
+        self.assertEqual(storage.config()['models'][0]['format'], 'exl2')
+
     def test_terminal_supervisor_is_tracked_and_stops_child(self):
         path = storage.DATA / 'integrations/sleeper/manifest.json'
         manifest = dict(id='sleeper', kind='agent', name='Sleeper', icon='terminal', color='mint', description='Fixture', executables=['/bin/sleep'], command=['{executable}', '30'], fields=[])
@@ -510,6 +516,39 @@ class HubTests(unittest.TestCase):
         self.assertEqual(hook.call_args[0][0].item['id'], 'pi')
         self.assertEqual(hook.call_args[0][1], 'restart')
         self.assertEqual(hook.call_args[0][2]['model'], 'new-model')
+
+    def test_combined_model_change_waits_for_provider_then_uses_agent_handler(self):
+        current, registry, provider, records = self.model_change_fixture()
+        provider_record = {'pid': 777, 'model_context': {'model': 'old-model'}}
+
+        def planned_owned(identifier, table):
+            if identifier == provider['id']:
+                return provider_record
+            return records.get(identifier)
+
+        with patch.object(runtime, 'owned', side_effect=planned_owned):
+            plan = model_changes.plans(
+                current, registry,
+                {provider['id']: {'ready': True, 'model': 'old-model', 'pid': 777}}, {},
+            )[0]
+        self.assertTrue(plan['provider_restart_available'])
+
+        def handler(ctx, action, request):
+            if ctx.item['id'] == provider['id'] and action == 'status':
+                return {'ready': True, 'model': 'new-model'}
+            return {'message': 'ok'}
+
+        with patch.object(runtime, 'processes', return_value={}), \
+             patch.object(runtime, 'owned', return_value=None), \
+             patch.object(runtime, 'event'), \
+             patch.object(model_changes, 'call', side_effect=handler) as hook:
+            result = model_changes.apply(
+                current, registry, plan,
+                {'restart_provider': True, 'agents': ['pi']},
+            )
+        calls = [(entry.args[0].item['id'], entry.args[1]) for entry in hook.call_args_list]
+        self.assertEqual(calls, [(provider['id'], 'restart'), (provider['id'], 'status'), ('pi', 'restart')])
+        self.assertIn('1 agent', result['message'])
 
     def test_pi_handler_writes_its_own_resolved_model_catalog(self):
         with patch.object(splash_handler, 'status', return_value={'ready': True, 'model': 'live-pi-model'}), patch('pihub_manager.hub.configuration.executable', return_value='/bin/echo'):

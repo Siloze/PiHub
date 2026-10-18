@@ -1,10 +1,10 @@
-# Atelier · Un provider et un agent importables
+# Atelier · Un moteur et un agent importables
 
 [Manuel](../README.md) · [Créer une intégration](../EXTENSIONS.md)
 
 Cet atelier permet de tester le fonctionnement des dossiers d’intégration sans moteur IA ni poids de modèle.
 
-Le provider renvoie un écho de votre message. L’agent est un petit client terminal. Ce ne sont pas un modèle de langage, un agent autonome de développement ou une implémentation complète de toutes les API d’IA.
+Le moteur renvoie un écho de votre message. L’agent est un petit client terminal. Ce ne sont pas un modèle de langage, un agent autonome de développement ou une implémentation complète de toutes les API d’IA.
 
 ## Les dossiers
 
@@ -25,18 +25,18 @@ Chaque dossier `demo-*` peut être importé séparément. Ils ne sont pas instal
 
 ## Parcours dans l’application
 
-### 1. Importer le provider
+### 1. Importer le moteur
 
 1. Ouvrez **Explorateur → Importer une intégration → Dossier…**.
 2. Sélectionnez `docs/examples/demo-provider/`.
 3. Choisissez **Importer seulement**.
-4. Ouvrez **Démo · provider HTTP** dans l’Explorateur.
+4. Ouvrez **Démo · provider HTTP** dans l’Explorateur (le nom technique de l’exemple est conservé).
 5. Ajoutez une instance et configurez :
    - modèle : `demo-echo` ;
    - adresse : `127.0.0.1` ;
    - port : `18190`, ou un autre port libre ;
    - interpréteur personnalisé : vide pour utiliser `/usr/bin/python3`.
-6. Enregistrez puis démarrez le provider.
+6. Enregistrez puis démarrez le moteur.
 7. Vérifiez qu’il devient prêt.
 
 PiHub utilise Python déjà disponible avec son environnement de développement. Aucune recette de téléchargement n’est nécessaire.
@@ -45,7 +45,7 @@ PiHub utilise Python déjà disponible avec son environnement de développement.
 
 1. Importez `docs/examples/demo-agent/`.
 2. Choisissez **Importer et configurer**, ou ajoutez une instance ensuite.
-3. Dans **Routage**, sélectionnez votre provider de démonstration.
+3. Dans **Routage**, sélectionnez votre moteur de démonstration.
 4. Laissez le champ modèle vide pour hériter de `demo-echo`.
 5. Enregistrez et ouvrez le terminal de cet agent.
 6. Saisissez `Bonjour PiHub`.

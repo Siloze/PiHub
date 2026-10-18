@@ -16,7 +16,7 @@ Le manager cible macOS 13+ sur Apple Silicon. Le backend utilise Python 3.9+ et 
 
 ## Ajouter une intégration
 
-Une contribution provider/agent est un dossier :
+Une contribution moteur/agent est un dossier (le contrat JSON conserve `kind: "provider"`) :
 
 ```text
 pihub-manager/integrations/mon-integration/

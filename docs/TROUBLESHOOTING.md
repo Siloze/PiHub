@@ -49,7 +49,7 @@ Le champ doit contenir un programme comme `/chemin/bin/serveur`, pas `serveur --
 
 **La relance d’un processus externe n’est pas proposée** : l’intégration ne sait peut-être pas identifier précisément le processus. Utiliser son propre outil de cycle de vie au lieu d’essayer de forcer la propriété du PID.
 
-**Le provider continue après fermeture du manager** : quitter l’interface n’est pas un arrêt de tous les runtimes. L’arrêter via son instance si souhaité.
+**Le moteur continue après fermeture du manager** : quitter l’interface n’est pas un arrêt de tous les runtimes. Arrêtez-le via son instance si souhaité.
 
 ## API et authentification
 
@@ -67,8 +67,8 @@ Le champ doit contenir un programme comme `/chemin/bin/serveur`, pas `serveur --
 | Mon dossier MLX n’est pas découvert | Le scanner reconnaît surtout la structure de cache Hugging Face documentée ; ajouter une référence manuelle si nécessaire. |
 | Modèle introuvable côté API | Utiliser l’identifiant exact attendu par le serveur, pas uniquement le nom d’affichage PiHub. |
 | Modèle incompatible | Vérifier format, architecture et prise en charge du runtime. |
-| Le modèle actif reste ancien | Enregistrer ne suffit pas : charger ou relancer le provider puis appliquer la proposition aux agents. |
-| Un agent ne suit pas le provider | Vérifier si son champ modèle est fixé explicitement. |
+| Le modèle actif reste ancien | Enregistrer ne suffit pas : charger ou relancer le moteur puis appliquer la proposition aux agents. |
+| Un agent ne suit pas le moteur | Vérifier si son champ modèle est fixé explicitement. |
 | Mémoire insuffisante | Ajuster le modèle et les paramètres dans le moteur ; PiHub ne rend pas les allocations illimitées. |
 
 ## Hermes et Pi

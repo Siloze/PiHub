@@ -1,4 +1,4 @@
-# 05 · Créer un provider ou un agent personnalisé
+# 05 · Créer un moteur ou un agent personnalisé
 
 [Manuel](README.md) · [Précédent : import/export](IMPORT_EXPORT.md) · [Suivant : référence du manifeste](MANIFEST_REFERENCE.md)
 
@@ -31,15 +31,15 @@ flowchart TD
 
 Le dossier [examples/](examples/README.md) contient :
 
-- [demo-provider](examples/demo-provider/) : un petit serveur HTTP d’écho piloté comme provider ;
-- [demo-agent](examples/demo-agent/) : un agent terminal qui utilise ce provider ;
+- [demo-provider](examples/demo-provider/) : un petit serveur HTTP d’écho piloté comme moteur ;
+- [demo-agent](examples/demo-agent/) : un agent terminal qui utilise ce moteur ;
 - [check_examples.py](examples/check_examples.py) : un contrôle de bout en bout, sans interface graphique.
 
 Ces programmes démontrent le contrat PiHub. Leur réponse est un écho déterministe, pas la sortie d’un modèle IA.
 
 Vous pouvez copier leurs dossiers, changer leurs identifiants et remplacer leur logique par celle de votre programme.
 
-## Parcours A · Ajouter un provider existant
+## Parcours A · Ajouter un moteur existant
 
 ### 1. Identifier le protocole et la commande
 
@@ -140,7 +140,7 @@ Dans une véritable intégration, construisez cette URL depuis les réglages de 
 
 Ajoutez aussi des champs `provider` de type `provider`, `model` de type `model` et, si utile, `project` de type `directory`.
 
-Un modèle vide signifie que l’agent suit celui du provider. Un modèle renseigné explicitement fixe son choix.
+Un modèle vide signifie que l’agent suit celui du moteur. Un modèle renseigné explicitement fixe son choix.
 
 ### 2. Construire sa vraie commande
 
@@ -158,7 +158,7 @@ def command(ctx, request):
 
 Les noms de variables ci-dessus sont des exemples. Remplacez-les par ceux que votre agent lit réellement, ou ajoutez les flags appropriés à `argv`. Une déclaration de routage seule ne configure pas un SDK externe.
 
-`resolved` vérifie le provider et résout le modèle. `launch_base` applique la commande du manifeste et le dossier de travail. Le [demo-agent](examples/demo-agent/handler.py) montre une implémentation complète.
+`resolved` vérifie le moteur et résout le modèle. `launch_base` applique la commande du manifeste et le dossier de travail. Le [demo-agent](examples/demo-agent/handler.py) montre une implémentation complète.
 
 ### 3. Déclarer les actions de session
 
@@ -206,7 +206,7 @@ def after_install(ctx, request):
         "title": "Bienvenue dans mon agent",
         "message": "Vérifiez les réglages avant votre première session.",
         "steps": [
-            "Sélectionner un provider prêt.",
+            "Sélectionner un moteur prêt.",
             "Choisir le projet.",
             "Ouvrir le terminal.",
         ],
@@ -232,7 +232,7 @@ Le [chapitre runtimes](CATALOG.md) détaille les variables, le déroulement du w
 3. Créez une instance et contrôlez ses champs.
 4. Utilisez **Diagnostic → Commande** avant de démarrer.
 5. Testez le statut, le lancement, les erreurs et l’arrêt.
-6. Si votre agent est routé, changez le modèle du provider et vérifiez la politique annoncée.
+6. Si votre agent est routé, changez le modèle du moteur et vérifiez la politique annoncée.
 7. Exportez le dossier puis importez cet export dans un autre workspace.
 
 N’ajoutez pas d’instances personnelles au code source. Pour contribuer au projet, proposez le dossier sous `pihub-manager/integrations/<id>/` avec sa documentation et sa vérification.

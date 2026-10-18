@@ -10,23 +10,24 @@ Le catalogue de modèles PiHub enregistre un nom, un identifiant, un format et �
 flowchart LR
     F["Fichier local ou cache"] --> C["Référence dans Modèles"]
     I["Identifiant Ollama/API"] --> C
-    C --> P["Affectation à un provider compatible"]
+    C --> P["Affectation à un moteur compatible"]
     P --> R["Le runtime charge ou sert le modèle"]
-    R --> A["Les agents utilisent le provider"]
+    R --> A["Les agents utilisent le moteur"]
 ```
 
 Les poids doivent déjà être disponibles ou être obtenus par votre outil habituel. Installer le runtime depuis l’Explorateur ne télécharge pas automatiquement les poids.
 
-## Les quatre formats du formulaire
+## Les formats ne sont pas une liste fermée
 
-| Format | Valeur à renseigner | Le provider doit savoir… |
+| Format | Valeur à renseigner | Le moteur doit savoir… |
 | --- | --- | --- |
 | `mlx` | Un identifiant de dépôt ou un chemin accepté par le moteur. | Lire ce modèle et ses fichiers MLX/safetensors. |
 | `gguf` | Le chemin vers un fichier `.gguf`. | Charger ce fichier, par exemple avec llama.cpp. |
 | `ollama` | Un identifiant présent ou géré dans Ollama. | Servir ce nom dans son daemon Ollama. |
 | `api` | L’identifiant exact attendu par l’API. | Accepter cet identifiant côté serveur. |
+| `autre` | Votre identifiant ou chemin ; par exemple `exl2`, `vllm` ou le format déclaré par votre runtime. | Déclarer ce même `model_format` dans son manifeste, ou `any`. |
 
-Un dépôt contenant des fichiers safetensors n’est pas nécessairement un modèle compatible MLX. La compatibilité dépend de son architecture et du moteur.
+Les formats proposés dans **Modèles** viennent des `model_format` déclarés par les moteurs installés, plus les formats déjà présents dans votre bibliothèque. **Autre / personnalisé** conserve exactement le format que vous saisissez : PiHub ne prétend pas le charger, il laisse un moteur qui le déclare compatible le gérer. Un dépôt contenant des fichiers safetensors n’est pas nécessairement un modèle compatible MLX.
 
 ## Ajouter une référence manuellement
 
@@ -36,7 +37,7 @@ Un dépôt contenant des fichiers safetensors n’est pas nécessairement un mod
 4. Choisissez le format.
 5. Renseignez l’identifiant ou le chemin.
 6. Enregistrez.
-7. Ouvrez un provider compatible et utilisez **Choisir dans le catalogue**, ou saisissez directement la référence dans son champ modèle.
+7. Ouvrez un moteur compatible et utilisez **Choisir dans le catalogue**, ou saisissez directement la référence dans son champ modèle.
 
 Exemples de valeurs, à adapter à vos fichiers et services :
 
@@ -52,7 +53,7 @@ Format : API distant
 Identifiant : identifiant-exact-du-service
 ```
 
-Le formulaire GGUF enregistre aussi ce chemin dans le champ `path`. Pour les autres formats, la référence est principalement portée par `id`.
+Un identifiant commençant par `/` est conservé comme chemin local, quel que soit son format. Les identifiants distants restent des références textuelles.
 
 ## Découvrir des modèles déjà présents
 
@@ -95,7 +96,7 @@ L’export du workspace inclut les références enregistrées dans sa configurat
 
 ## Affecter le modèle au bon programme
 
-Le **provider** charge ou expose le modèle. L’**agent** choisit le provider et peut hériter de son modèle.
+Le **moteur** charge ou expose le modèle. L’**agent** choisit le moteur et peut hériter de son modèle.
 
 Deux situations différentes peuvent donc apparaître :
 
@@ -112,13 +113,13 @@ Pour un serveur multi-modèles, comme un daemon pouvant exposer plusieurs modèl
 
 Un nom d’affichage personnel n’est pas toujours un identifiant utilisable par une API. Pour une API distante, utilisez le nom exact attendu par ce serveur. Pour un moteur local, consultez les chemins ou identifiants qu’il accepte.
 
-L’URL de base de l’API va dans le provider. Le champ modèle contient son identifiant ; ce n’est pas l’endroit où saisir une URL de conversation.
+L’URL de base de l’API va dans le moteur. Le champ modèle contient son identifiant ; ce n’est pas l’endroit où saisir une URL de conversation.
 
 Si la requête échoue alors que l’API est prête, vérifiez :
 
 1. l’identifiant du modèle ;
 2. son format et son architecture ;
-3. sa disponibilité réelle côté provider ;
+3. sa disponibilité réelle côté moteur ;
 4. les limites de mémoire et de contexte ;
 5. la compatibilité des appels d’outils avec l’agent.
 

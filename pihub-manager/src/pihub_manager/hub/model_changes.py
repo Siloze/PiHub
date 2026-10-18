@@ -1,5 +1,6 @@
 """Generic provider→agent dependency planning, delegated to optional policy hooks."""
 import uuid
+import time
 from .integrations import Context, call, resolve
 from .storage import DATA, read, write
 from .configuration import endpoint
@@ -60,7 +61,7 @@ def plans(current, registry, states, table):
                 'Exécutable personnalisé ou processus externe : PiHub va tenter la relance, '
                 'mais ne peut pas garantir que le programme acceptera la commande.'
                 if provider_restart_uncertain else
-                'Le provider sera arrêté puis relancé avec la nouvelle configuration.'
+                'Le moteur sera arrêté puis relancé avec la nouvelle configuration.'
                 if provider_restart_available else ''
             ),
             agents=[],
@@ -82,7 +83,7 @@ def plans(current, registry, states, table):
                 external=bool(external),
             )
             if pinned:
-                row['reason'] = 'Modèle fixé dans cet agent : il ne suit pas automatiquement le provider.'
+                row['reason'] = 'Modèle fixé dans cet agent : il ne suit pas automatiquement le moteur.'
             elif not records and not external:
                 row['reason'] = 'Arrêté : le nouveau modèle sera appliqué au prochain lancement.'
             elif records and all(launched_model(r) == pending['after'] for r in records):
@@ -113,15 +114,44 @@ def dismiss(identifier):
     write(PATH, pending)
 
 
+def provider_matches(state, process, manifest, target):
+    """Use the provider's own status plus PiHub's launch context as evidence."""
+    if manifest.get('multi_model'):
+        return target in state.get('models', [])
+    return (
+        state.get('model') == target
+        or process.get('model_context', {}).get('model') == target
+    )
+
+
+def wait_for_provider(ctx, manifest, target, timeout=45):
+    """Do not touch dependent agents until the restarted provider is usable."""
+    deadline = time.monotonic() + timeout
+    last_state = {}
+    while time.monotonic() < deadline:
+        last_state = call(ctx, 'status', {})
+        table = ctx.runtime.processes()
+        process = ctx.runtime.owned(ctx.item['id'], table) or {}
+        if last_state.get('ready') and provider_matches(last_state, process, manifest, target):
+            return
+        time.sleep(.5)
+    detail = last_state.get('error') or 'il n’est pas encore prêt avec le nouveau modèle.'
+    raise ValueError(
+        'Le moteur a été relancé, mais PiHub ne confirme pas encore le modèle « '
+        + target + ' » : ' + detail + ' Aucun agent n’a été arrêté.'
+    )
+
+
 def apply(current, registry, plan, request):
+    provider_ready = bool(plan.get('provider_ready'))
     if request.get('restart_provider'):
         if not plan.get('provider_restart_available'):
-            raise ValueError('Le provider ne peut pas être relancé automatiquement. Redémarrez-le depuis son application ou son terminal.')
+            raise ValueError('Le moteur ne peut pas être relancé automatiquement. Redémarrez-le depuis son application ou son terminal.')
         if plan.get('provider_restart_uncertain') and not request.get('confirm_uncertain'):
-            raise ValueError('Confirmez la relance incertaine du provider personnalisé ou externe.')
+            raise ValueError('Confirmez la relance incertaine du moteur personnalisé ou externe.')
         provider = next((p for p in current['providers'] if p['id'] == plan['provider_id']), None)
         if not provider:
-            raise ValueError('Provider introuvable ; actualisez PiHub.')
+            raise ValueError('Moteur introuvable ; actualisez PiHub.')
         provider_ctx = Context(provider, current, registry)
         provider_table = provider_ctx.runtime.processes()
         external = not provider_ctx.runtime.owned(provider['id'], provider_table)
@@ -130,11 +160,18 @@ def apply(current, registry, plan, request):
             {'confirm_external': bool(external and request.get('confirm_uncertain'))},
         )
         provider_ctx.runtime.event(
-            'Relance du provider', provider['name'], plan['after'],
+            'Relance du moteur', provider['name'], plan['after'],
         )
-        return {'message': 'Relance du provider demandée. Vérifiez qu’il sert le nouveau modèle avant de relancer les agents.'}
-    if not plan['provider_ready']:
-        raise ValueError('Chargez d’abord le nouveau modèle sur le provider. Aucun agent n’a été arrêté.')
+        # The provider status handler is authoritative for readiness.  Waiting
+        # here makes a single confirmation safe: no agent handler is called
+        # until the new endpoint/model is actually available.
+        wait_for_provider(provider_ctx, registry[provider['adapter']], plan['after'])
+        provider_ready = True
+        # Backward-compatible provider-only action from older clients.
+        if 'agents' not in request:
+            return {'message': 'Moteur relancé et prêt avec le nouveau modèle. Les agents peuvent maintenant être mis à jour.'}
+    if not provider_ready:
+        raise ValueError('Chargez d’abord le nouveau modèle sur le moteur. Aucun agent n’a été arrêté.')
     eligible = {a['id']: a for a in plan['agents'] if a['needs_action']}
     selected = request.get('agents', list(eligible))
     if not all(identifier in eligible for identifier in selected):

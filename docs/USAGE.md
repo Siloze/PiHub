@@ -1,145 +1,116 @@
-# 02 · Utiliser PiHub au quotidien
+# 02 · Utiliser PiHub : le parcours clic par clic
 
-[Manuel](README.md) · [Précédent : installation](INSTALLATION.md) · [Suivant : modèles](MODELS.md)
+[Manuel](README.md) · [← Installation](INSTALLATION.md) · [Modèles →](MODELS.md)
 
-## Les zones de l’interface
+<img src="assets/pihub-interface.svg" alt="Résumé PiHub avec un moteur Splash et les agents qui y sont rattachés" width="100%">
 
-| Zone | À quoi elle sert |
-| --- | --- |
-| Vue d’ensemble | Voir les providers prêts, les sessions et les relations entre instances. |
-| Providers | Configurer et piloter les moteurs ou endpoints. |
-| Agents | Configurer le routage, le modèle, le projet et les sessions. |
-| Modèles | Enregistrer et retrouver des références compatibles avec les providers. |
-| Explorateur | Découvrir les intégrations, importer un dossier et installer un runtime. |
-| Activité | Examiner les processus observés et l’historique de ressources. |
-| Réglages | Gérer les dossiers de modèles, les intégrations et les données du workspace. |
+## Lire l’interface
 
-Le panneau de barre des menus et la fenêtre partagent les mêmes données. Le bouton de détachement permet de travailler dans une fenêtre plus large.
+| Zone | Cliquez ici pour… | Ce que vous devez voir |
+| --- | --- | --- |
+| **Vue d’ensemble** | Comprendre les liens entre vos instances. | Un arbre `moteur → agents`, les modèles `Sert · …`, et les éléments arrêtés en grisé. |
+| **Moteurs** | Démarrer, arrêter, configurer un runtime local ou un endpoint. | Son état : **Prêt**, **Démarrage**, **Arrêté**, ou une indication de configuration. |
+| **Agents** | Choisir un moteur, un projet, un modèle fixe et ouvrir une session. | Le moteur rattaché ou « Compte natif / Sans moteur ». |
+| **Modèles** | Enregistrer une référence, un chemin local ou un format personnel. | Les moteurs compatibles proposés dans le menu d’affectation. |
+| **Explorer** | Installer, réinstaller, importer ou exporter une intégration. | La version, les prérequis, le journal et la présence du runtime. |
+| **Activité** | Lire les processus et ressources réellement observés. | CPU, RAM RSS, GPU lorsque disponible, PID et journal. |
+
+Le panneau de barre des menus et la fenêtre complète utilisent les mêmes données. Cliquez sur **Agrandir** dans le panneau pour ouvrir la fenêtre ; cliquez sur l’icône de repli dans la fenêtre pour revenir au panneau compact.
+
+> Dans les manifests et certains extraits techniques, « moteur » s’appelle `provider`. Ne renommez pas les clés JSON `provider`, `provider_field` ou `kind: "provider"`.
 
 ## Connecter une API existante
 
-1. **Explorateur → API compatible**.
-2. Cliquez sur **Ajouter une instance**.
-3. Ouvrez ses réglages et renseignez l’URL de base de l’API, incluant généralement `/v1`.
-4. Choisissez un nom d’instance lisible et renseignez le modèle demandé par votre service.
-5. Si une authentification est nécessaire, renseignez le nom de sa variable d’environnement.
-6. Enregistrez, puis utilisez **Diagnostic → Tester API**.
+Utilisez ce parcours pour LM Studio, vLLM, un serveur maison ou toute API déjà démarrée.
 
-Exemple d’URL pour un serveur déjà lancé : `http://127.0.0.1:18000/v1`.
+1. Dans la barre latérale, cliquez sur **Explorer**.
+2. Recherchez **API compatible**, puis ouvrez sa fiche.
+3. Cliquez sur **Ajouter une instance**. Une ligne apparaît dans **Moteurs**.
+4. Cliquez sur le bouton de réglages de cette ligne.
+5. Dans **Connexion**, saisissez l’URL de base, par exemple `http://127.0.0.1:18000/v1`.
+6. Dans **Modèle**, saisissez l’identifiant exigé par votre serveur.
+7. Si une clé est nécessaire, saisissez son **nom de variable** — par exemple `MON_API_KEY`, jamais la valeur de la clé.
+8. Cliquez sur **Enregistrer**, puis sur **Diagnostic → Tester API**.
 
-La connexion au serveur ne vérifie pas toutes les fonctions de génération ou d’outils de chaque agent. L’intégration HTTP commune interroge notamment la liste des modèles. Validez ensuite une véritable demande depuis l’agent.
+Le test doit confirmer que l’API est disponible. S’il échoue, ouvrez le journal, vérifiez l’URL, le port et la variable, puis réessayez. Un moteur accessible ne garantit pas que tous les agents supportent son protocole : Codex requiert notamment l’API Responses et les appels d’outils.
 
-### Fournir une clé sans la mettre dans un manifeste
+### Fournir une clé sans la placer dans PiHub
 
-Dans le champ de clé, saisissez par exemple `MON_API_KEY`, et non la valeur secrète.
-
-L’application doit recevoir cette variable. Pour une session lancée depuis Terminal :
+Dans Terminal, définissez la variable puis lancez l’application depuis ce même Terminal :
 
 ```sh
 export MON_API_KEY='votre-valeur-locale'
-./PiHubManager.app/Contents/MacOS/PiHubManager --window
+open PiHubManager.app --args --window
 ```
 
-Cet exemple est à exécuter avec votre propre valeur. Évitez de publier votre historique de commandes ou de stocker une clé dans les exemples partagés. PiHub ne charge pas automatiquement un fichier `.env` arbitraire.
+Une app ouverte depuis Finder n’hérite pas forcément des variables de votre shell. Quittez PiHub, ouvrez Terminal, exécutez ces deux lignes, puis refaites le test API.
 
-Une application ouverte depuis Finder n’hérite pas nécessairement des variables de votre shell. En cas de variable introuvable, quittez l’instance du manager en cours puis relancez-le dans l’environnement voulu.
+## Installer un moteur local
 
-## Installer un provider local
+1. Cliquez sur **Explorer**.
+2. Ouvrez la fiche de Splash, llama.cpp, MLX LM ou Ollama.
+3. Lisez **prérequis**, **version de référence** et **commandes**. N’installez pas si cette fiche ne correspond pas à votre format de modèle.
+4. Cliquez sur **Installer**, lisez la confirmation, puis confirmez.
+5. Restez sur la fiche : le job affiche sa progression. Cliquez sur **Journal** si une étape échoue.
+6. Une fois terminé, cliquez sur l’icône de réglages de l’instance créée.
+7. Dans **Modèle**, choisissez une référence déjà ajoutée dans PiHub, ou saisissez l’identifiant/chemin du modèle.
+8. Vérifiez **Adresse**, **Port**, **Mémoire**, **Contexte** et les options propres au runtime, puis cliquez sur **Enregistrer**.
+9. Dans **Moteurs**, cliquez sur **Démarrer**.
 
-1. Dans **Explorateur**, ouvrez la fiche du moteur.
-2. Lisez sa version de référence, ses prérequis et ses commandes.
-3. Cliquez sur **Installer…** et confirmez.
-4. Suivez le job d’installation ; son journal est disponible dans l’Explorateur.
-5. Configurez l’instance avec son modèle, son adresse, son port et ses paramètres.
-6. Démarrez le provider ; attendez le statut prêt avant d’ouvrir un agent.
+Attendez l’état **Prêt**. Dans le résumé, le moteur doit passer dans **En cours** et afficher `Sert · nom-du-modèle`. Si le port reste occupé après un arrêt, PiHub le signale explicitement : consultez **Activité** pour distinguer un sous-processus qui se ferme d’un processus externe.
 
-Une recette crée un runtime dans `.pihub/packages/<job-id>/`. PiHub renseigne son exécutable dans les instances concernées.
+### Runtime déjà installé ?
 
-Si le moteur est déjà installé, choisissez **Ajouter une instance**, puis sélectionnez son programme dans **Avancé → Chemin de l’exécutable**. Ce champ contient uniquement le programme, pas toute une commande shell.
-
-## Créer plusieurs instances
-
-Une intégration peut avoir plusieurs instances. Vous pouvez par exemple configurer deux serveurs llama.cpp sur des ports différents, ou deux agents Pi avec des dossiers de travail différents.
-
-```mermaid
-flowchart TD
-    I["Intégration llama.cpp"] --> P1["Instance · projet A<br/>port 18100"]
-    I --> P2["Instance · projet B<br/>port 18101"]
-    A1["Instance Pi · projet A"] --> P1
-    A2["Instance Hermes · projet B"] --> P2
-```
-
-Le formulaire de l’intégration est partagé. Les valeurs de chaque instance sont indépendantes. Modifier les commandes ou handlers dans **Intégration → Personnaliser l’intégration…** modifie la définition de toutes ses instances.
-
-Des ports distincts ne suffisent pas à garantir que deux modèles tiennent simultanément en mémoire. Les ressources nécessaires restent celles des runtimes.
+1. Dans **Explorer**, ouvrez le moteur concerné puis cliquez sur **Ajouter une instance**.
+2. Ouvrez **Configurer → Avancé**.
+3. Dans **Chemin de l’exécutable**, choisissez le fichier exécutable seul — pas une commande complète copiée depuis un terminal.
+4. Enregistrez, configurez modèle/port, puis démarrez.
 
 ## Ajouter et ouvrir un agent
 
-1. Ajoutez une instance depuis **Agents → +** ou depuis l’Explorateur.
-2. Dans **Routage**, sélectionnez le provider.
-3. Laissez le modèle vide pour suivre celui du provider, ou renseignez un modèle fixe.
-4. Choisissez le dossier de travail et les options de session.
-5. Enregistrez, assurez-vous que le provider est prêt, puis ouvrez le terminal de l’agent.
+1. Cliquez sur **Agents**, puis sur **+**.
+2. Sélectionnez Pi Agent, Hermes, Codex ou une intégration personnelle.
+3. Cliquez sur le bouton de réglages de l’agent.
+4. Dans **Routage**, choisissez le moteur prêt. Laissez le champ modèle vide si l’agent doit suivre le moteur ; remplissez-le seulement pour le fixer.
+5. Choisissez le dossier de travail et les options propres à l’agent.
+6. Cliquez sur **Enregistrer**.
+7. Cliquez sur l’action de lancement : **Terminal**, **Dashboard**, ou l’action déclarée par cette intégration.
 
-Le niveau de réflexion n’est pas une garantie universelle. Le runtime, le modèle et l’agent doivent tous accepter les réglages concernés.
+Les agents ont leurs propres handlers. PiHub ne suppose pas qu’ils se lancent tous de la même manière : Terminal, Web UI, profil, arguments ou configuration sont définis par l’intégration.
 
-### Pi Agent
+### Hermes : configurer le profil avant la première session
 
-Dans **Session → Outils actifs**, sélectionnez les outils proposés : `read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`.
+Quand Hermes affiche **Profil Hermes à configurer** :
 
-Vous pouvez saisir un nom ou motif d’outil d’extension, puis valider avec Entrée. Ajouter un nom ne crée ni l’outil ni la connexion MCP : ils doivent être disponibles dans le runtime Pi utilisé.
+1. Vérifiez que le moteur choisi dans **Routage** est **Prêt**.
+2. Dans **Agents**, cliquez sur **Configurer le profil** ; ou ouvrez les réglages Hermes → **Diagnostic** → **Initialiser le gateway PiHub**.
+3. PiHub crée le profil `pihub-<id-instance>`, y enregistre moteur/modèle/endpoint, puis initialise le gateway Hermes partagé.
+4. Quand le message de succès s’affiche, ouvrez **Terminal** ou **Dashboard**.
 
-La valeur est transmise à Pi via `--tools`. Les options MCP et hors ligne sont propres à la version de Pi référencée par l’intégration.
-
-### Hermes
-
-PiHub prépare un profil `pihub-<id-instance>` dans son home Hermes. Son modèle, son provider et son endpoint sont enregistrés dans ce profil.
-
-Dans **Diagnostic**, le bouton **Initialiser le gateway PiHub** configure le profil, prépare le gateway hôte partagé et le redémarre pour prendre en charge le profil. Il devient une action de réapplication lorsque l’état est confirmé.
-
-Cette initialisation concerne le gateway : elle n’est pas une condition générale pour toute session terminal Hermes. Elle ne configure pas vos comptes Telegram, Discord ou autres plateformes. Le gateway doit disposer des plateformes nécessaires à votre usage.
-
-Le dashboard Web est une action distincte. Son premier démarrage peut nécessiter la construction du frontend.
+Cette action ne configure pas vos plateformes Hermes (Telegram, Discord, etc.). Faites-le dans le profil Hermes si vous souhaitez les utiliser.
 
 ### Codex
 
-Le choix natif utilise sa configuration de compte habituelle. Un routage personnalisé nécessite un provider compatible avec son API Responses et ses appels d’outils. Un endpoint simplement compatible Chat Completions n’implique pas cette compatibilité.
+Choisissez **Compte natif** pour conserver la configuration Codex habituelle. Pour le routage PiHub, choisissez un moteur qui supporte réellement Responses + outils ; une API limitée à Chat Completions ne suffit pas.
 
-## Changer le modèle d’un provider
+## Changer le modèle sans casser les agents
 
-Enregistrer un nouveau modèle change la configuration, pas forcément le modèle déjà chargé.
+1. Ouvrez le moteur concerné dans **Moteurs**.
+2. Choisissez un autre modèle puis cliquez sur **Enregistrer**.
+3. PiHub affiche une proposition en haut de la fenêtre. Dépliez-la pour voir les agents rattachés, leurs modèles fixés et l’action disponible.
+4. Cochez les agents souhaités, puis cliquez sur **Relancer le moteur et N agents**.
+5. Confirmez.
 
-```mermaid
-flowchart TD
-    S["Enregistrer le modèle cible"] --> P["Appliquer le changement au provider"]
-    P --> R{"Le provider annonce<br/>le nouveau modèle prêt ?"}
-    R -->|"Non"| W["Vérifier chargement et journaux"]
-    W --> P
-    R -->|"Oui"| A["Sélectionner les agents liés à mettre à jour"]
-    A --> C["Confirmer l’action proposée"]
-    C --> H["Le handler applique le changement ou relance"]
-```
+PiHub relance le moteur via son handler, attend qu’il confirme le nouveau modèle, puis appelle le handler individuel de chaque agent. Si le moteur ne devient pas prêt, aucun agent n’est arrêté. Les agents arrêtés ou avec un modèle fixe ne sont pas modifiés sans votre décision.
 
-Les agents ayant un modèle fixe ne suivent pas cette proposition. Les agents arrêtés prennent le modèle au prochain lancement. Les sessions déjà sur le modèle cible ne nécessitent pas une relance supplémentaire.
+## Avant de modifier : où regarder ?
 
-Une relance ouvre une nouvelle session ; la conservation de l’état de conversation dépend de l’agent.
+| Vous voyez… | Faites ceci |
+| --- | --- |
+| **Exécutable absent** | Ouvrez **Configurer → Avancé** et choisissez l’exécutable, ou retournez dans Explorer pour l’installer. |
+| **Profil Hermes à configurer** | Préparez le moteur, puis cliquez sur **Configurer le profil**. |
+| **Démarrage** qui dure | Cliquez sur **Journal** dans les réglages et regardez l’action/commande réellement exécutée. |
+| Port encore utilisé | Attendez le message de libération, puis consultez Activité : un processus externe peut retenir le port. |
+| Action manquante | L’intégration n’a pas déclaré ce handler ; ouvrez sa définition ou utilisez son outil natif. |
 
-## Processus gérés, externes et exécutables personnalisés
-
-- **Géré** : PiHub suit le processus qu’il a lancé ou explicitement pris en charge.
-- **Externe** : un service est accessible, mais cela ne donne pas automatiquement à PiHub le contrôle de son processus.
-- **Exécutable personnalisé** : le programme de cette instance diffère des candidats du manifeste.
-
-Lorsque l’intégration sait identifier un processus externe, **Prendre en charge** peut l’associer au suivi PiHub. Une relance externe ou personnalisée peut être proposée avec confirmation ; elle n’est pas disponible pour n’importe quel processus arbitraire.
-
-Si aucune relance sûre n’est identifiable, démarrez ou arrêtez le programme depuis son propre outil. Le manager ne tue pas tous les processus partageant un nom.
-
-## Diagnostiquer avant de modifier
-
-Dans l’éditeur d’instance, **Diagnostic** donne accès selon les handlers déclarés à la commande, aux journaux, au test API, aux actions de cycle de vie et aux informations d’exécutable.
-
-Une action absente signifie souvent que l’intégration ne déclare pas son handler. Un exécutable présent n’est pas la preuve d’un service prêt, et un service prêt n’est pas la preuve de compatibilité de tous les agents.
-
-Pour les incidents courants, utilisez le [chapitre dépannage](TROUBLESHOOTING.md).
-
-[Suivant : modèles →](MODELS.md)
+[Continuer : modèles →](MODELS.md) · [Dépanner un incident →](TROUBLESHOOTING.md)

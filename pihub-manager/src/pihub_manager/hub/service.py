@@ -293,7 +293,12 @@ def action(request):
             return result or {'message': 'Opération terminée.'}
         elif name == 'model-save':
             model = request['model']
-            if not model.get('id') or not model.get('name') or model.get('format') not in ('mlx', 'gguf', 'ollama', 'api'):
+            model_format = model.get('format', '')
+            if (
+                not model.get('id') or not model.get('name')
+                or not isinstance(model_format, str)
+                or not __import__('re').fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,39}', model_format)
+            ):
                 raise ValueError('Modèle : nom, identifiant et format requis.')
             current['models'] = [m for m in current['models'] if m['id'] != model['id']] + [model]
             write(DATA / 'config.json', current)

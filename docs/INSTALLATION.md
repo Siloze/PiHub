@@ -2,6 +2,8 @@
 
 [Manuel](README.md) · [Accueil](../README.md) · [Suivant : utilisation](USAGE.md)
 
+> Objectif de ce guide : faire apparaître l’icône PiHub dans votre barre des menus. Vous n’avez besoin d’installer ni modèle ni moteur avant cette étape.
+
 ## Prérequis
 
 | Élément | Exigence du manager |
@@ -17,7 +19,7 @@ Ces prérequis concernent PiHub. Chaque runtime possède ses propres contraintes
 
 La recette Splash actuellement livrée cible macOS 26 ou supérieur. Elle ne modifie pas le minimum système de l’interface PiHub.
 
-## Récupérer les sources
+## Étape 1 — Récupérer les sources
 
 Sur GitHub, utilisez **Code → Download ZIP** puis décompressez l’archive. Vous pouvez également cloner l’URL du dépôt avec Git.
 
@@ -37,7 +39,7 @@ votre-dossier/
 
 Les dossiers `docs/` et `.github/` ajoutent le manuel et les outils de contribution. Ils ne sont pas requis pour exécuter le manager.
 
-## Construire et ouvrir
+## Étape 2 — Construire et ouvrir
 
 Dans Terminal :
 
@@ -45,13 +47,15 @@ Dans Terminal :
 xcode-select --install
 ```
 
-Terminez l’installation proposée par macOS, puis placez-vous dans le dossier du projet :
+Une fenêtre macOS peut s’ouvrir. Terminez son installation, puis revenez dans Terminal. Ensuite, naviguez dans le dossier que vous avez décompressé :
 
 ```sh
 cd /chemin/vers/PiHub
 make check
 make manager
 ```
+
+Si `cd` répond « No such file or directory », remplacez `/chemin/vers/PiHub` par le vrai dossier. Astuce : tapez `cd `, faites glisser le dossier PiHub dans Terminal, puis appuyez sur Entrée.
 
 La compilation crée `PiHubManager.app` à la racine. Le backend Python est copié dans l’application ; les définitions d’intégrations sont lues dans `pihub-manager/integrations/`.
 
@@ -65,7 +69,9 @@ flowchart LR
     A --> L["Données locales .pihub"]
 ```
 
-`make manager` ouvre ensuite l’application en arrière-plan. Cliquez sur l’icône PiHub dans la barre des menus. Pour ouvrir directement une fenêtre :
+`make manager` ouvre ensuite l’application en arrière-plan. Regardez tout à droite de votre barre des menus et cliquez sur l’icône PiHub. Vous voyez alors le panneau compact. Cliquez sur **Agrandir** pour voir Moteurs, Agents, Modèles et Explorer.
+
+Pour ouvrir directement une fenêtre :
 
 ```sh
 open PiHubManager.app --args --window
@@ -73,7 +79,7 @@ open PiHubManager.app --args --window
 
 La signature produite par le script de build est locale. Le projet ne promet pas qu’une application copiée depuis un autre Mac soit notarialisée ou approuvée automatiquement par macOS.
 
-## Commandes disponibles
+## Les commandes utiles, sans jargon
 
 | Commande | Effet |
 | --- | --- |
@@ -87,13 +93,13 @@ La signature produite par le script de build est locale. Le projet ne promet pas
 | `make test` | Exécuter les tests du backend. |
 | `make package-source` | Préparer une archive des sources à partager. |
 
-Les démarrages de providers, agents et modèles se font dans l’application. Le Makefile n’est pas un second gestionnaire de ces processus.
+Les démarrages de moteurs, agents et modèles se font dans l’application. Le Makefile n’est pas un second gestionnaire de ces processus.
 
-## Premier lancement
+## Étape 3 — Premier lancement
 
 Un projet neuf ne contient aucune instance ni référence de modèle personnelle. C’est normal.
 
-Ouvrez l’Explorateur pour :
+Après avoir cliqué sur l’icône PiHub :
 
 - ajouter une instance d’une intégration livrée ;
 - réutiliser un exécutable déjà présent ;
@@ -102,7 +108,7 @@ Ouvrez l’Explorateur pour :
 
 Installer PiHub ne télécharge pas tous les runtimes. Installer un runtime ne récupère pas automatiquement les poids de vos modèles.
 
-Passez au [chapitre utilisation](USAGE.md) pour le premier provider et le premier agent.
+Commencez par [le parcours guidé d’utilisation](USAGE.md) pour ajouter votre premier moteur et votre premier agent.
 
 ## Mettre à jour PiHub
 

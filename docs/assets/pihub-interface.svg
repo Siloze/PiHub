@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="880" viewBox="0 0 1440 880" role="img" aria-labelledby="title desc">
+  <title id="title">Aperçu de l’interface PiHub</title>
+  <desc id="desc">Fenêtre sombre PiHub montrant un moteur Splash, deux agents rattachés et les ressources.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#121625"/><stop offset="1" stop-color="#070914"/></linearGradient>
+    <linearGradient id="accent" x1="0" x2="1"><stop stop-color="#aa92ff"/><stop offset="1" stop-color="#78c9ff"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="22" stdDeviation="20" flood-color="#000" flood-opacity=".42"/></filter>
+  </defs>
+  <rect width="1440" height="880" rx="36" fill="#050610"/>
+  <rect x="34" y="34" width="1372" height="812" rx="22" fill="url(#bg)" stroke="#ffffff" stroke-opacity=".1" filter="url(#shadow)"/>
+  <path d="M34 56a22 22 0 0 1 22-22h1328a22 22 0 0 1 22 22v42H34z" fill="#0b0e1b"/>
+  <circle cx="68" cy="76" r="7" fill="#ff675f"/><circle cx="92" cy="76" r="7" fill="#ffc84d"/><circle cx="116" cy="76" r="7" fill="#45d680"/>
+  <rect x="62" y="118" width="220" height="694" rx="16" fill="#0a0d19"/>
+  <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">
+    <circle cx="92" cy="158" r="20" fill="#aa92ff" fill-opacity=".18"/><path d="M82 158l10-10 10 10-10 10z" fill="#aa92ff"/>
+    <text x="122" y="154" fill="#fff" font-size="22" font-weight="700">PiHub</text><text x="122" y="172" fill="#8b98b4" font-size="9" letter-spacing="2">LOCAL AI WORKSPACE</text>
+    <text x="84" y="222" fill="#71809d" font-size="10" font-weight="700" letter-spacing="1.5">CONTROL CENTER</text>
+    <rect x="76" y="241" width="192" height="45" rx="10" fill="#aa92ff" fill-opacity=".16"/>
+    <g fill="#e9e7ff" font-size="13"><text x="105" y="269">▦</text><text x="132" y="269" font-weight="600">Vue d’ensemble</text></g>
+    <g fill="#8793ae" font-size="13"><text x="105" y="320">▣</text><text x="132" y="320">Moteurs</text><text x="105" y="371">⌘</text><text x="132" y="371">Agents</text><text x="105" y="422">◈</text><text x="132" y="422">Modèles</text><text x="105" y="473">▦</text><text x="132" y="473">Explorer</text><text x="105" y="524">⌁</text><text x="132" y="524">Activité</text></g>
+    <rect x="304" y="118" width="1070" height="66" fill="#0a0d19"/>
+    <text x="334" y="148" fill="#fff" font-size="21" font-weight="650">Vue d’ensemble</text><text x="334" y="168" fill="#8995ae" font-size="11">Toute votre infrastructure IA, en un regard.</text>
+    <text x="1320" y="154" fill="#aa92ff" font-size="20">↻</text>
+    <g transform="translate(334 223)"><text fill="#72e6bd" font-size="31" font-weight="300">2</text><text y="21" x="0" fill="#8995ae" font-size="9" letter-spacing="1.3">MOTEURS</text></g>
+    <g transform="translate(488 223)"><text fill="#aa92ff" font-size="31" font-weight="300">3</text><text y="21" x="0" fill="#8995ae" font-size="9" letter-spacing="1.3">AGENTS</text></g>
+    <g transform="translate(642 223)"><text fill="#6ed6ff" font-size="31" font-weight="300">8</text><text y="21" x="0" fill="#8995ae" font-size="9" letter-spacing="1.3">MODÈLES</text></g>
+    <g transform="translate(796 223)"><text fill="#aab6cc" font-size="31" font-weight="300">12.4 Go</text><text y="21" x="0" fill="#8995ae" font-size="9" letter-spacing="1.3">RAM RSS</text></g>
+    <line x1="334" y1="278" x2="1040" y2="278" stroke="#fff" stroke-opacity=".11"/>
+    <text x="334" y="324" fill="#8d9ab4" font-size="10" font-weight="700" letter-spacing="1.3">CIRCUIT D’INFÉRENCE · MOTEUR → AGENT</text>
+    <circle cx="340" cy="357" r="4" fill="#72e6bd"/><text x="352" y="361" fill="#8995ae" font-size="10" font-weight="700" letter-spacing="1.2">EN COURS</text>
+    <rect x="334" y="379" width="706" height="126" rx="14" fill="#ffffff" fill-opacity=".035" stroke="#fff" stroke-opacity=".07"/>
+    <rect x="354" y="400" width="38" height="38" rx="11" fill="#78c9ff" fill-opacity=".14"/><text x="365" y="426" fill="#78c9ff" font-size="17">◈</text>
+    <text x="407" y="415" fill="#fff" font-size="14" font-weight="650">Splash · local</text><text x="407" y="432" fill="#72e6bd" font-size="10">Prêt</text><text x="407" y="451" fill="#8793ae" font-size="10" font-family="ui-monospace,Menlo">Sert · Qwen3-30B-MLX · Llama-3.3-70B-MLX</text>
+    <text x="386" y="472" fill="#66738d" font-size="12" font-family="ui-monospace,Menlo">├─</text><text x="407" y="472" fill="#fff" font-size="11">Pi Agent</text><text x="474" y="472" fill="#72e6bd" font-size="9">En session</text><text x="407" y="488" fill="#8793ae" font-size="8" font-family="ui-monospace,Menlo">· Qwen3-30B-MLX</text>
+    <text x="386" y="506" fill="#66738d" font-size="12" font-family="ui-monospace,Menlo">╰─</text><text x="407" y="506" fill="#a1aabe" font-size="11">Hermes</text><text x="461" y="506" fill="#7b879f" font-size="9">Arrêté</text>
+    <circle cx="340" cy="555" r="4" fill="#68758e"/><text x="352" y="559" fill="#7f8ca5" font-size="10" font-weight="700" letter-spacing="1.2">ARRÊTÉS · CONFIGURÉS</text>
+    <rect x="334" y="578" width="706" height="92" rx="14" fill="#ffffff" fill-opacity=".018" stroke="#fff" stroke-opacity=".05"/>
+    <text x="354" y="610" fill="#6f7c94" font-size="13" font-weight="650">llama.cpp · projet GGUF</text><text x="354" y="628" fill="#69768d" font-size="10">Prévu · Q4_K_M.gguf</text><text x="354" y="654" fill="#59667d" font-size="10" font-family="ui-monospace,Menlo">╰─ Codex · compte natif</text>
+    <line x1="1082" y1="304" x2="1082" y2="738" stroke="#fff" stroke-opacity=".08"/>
+    <text x="1114" y="324" fill="#8d9ab4" font-size="10" font-weight="700" letter-spacing="1.3">MÉMOIRE DES PROCESSUS</text>
+    <path d="M1114 445 C1150 414 1182 457 1220 413 S1290 430 1342 365" fill="none" stroke="url(#accent)" stroke-width="3"/><path d="M1114 445 C1150 414 1182 457 1220 413 S1290 430 1342 365 L1342 477 L1114 477z" fill="#aa92ff" fill-opacity=".08"/>
+    <line x1="1114" y1="477" x2="1342" y2="477" stroke="#fff" stroke-opacity=".1"/>
+    <text x="1114" y="507" fill="#8793ae" font-size="10">RAM, CPU et GPU observés par processus</text>
+    <text x="1114" y="578" fill="#8d9ab4" font-size="10" font-weight="700" letter-spacing="1.3">DERNIER MOUVEMENT</text>
+    <text x="1114" y="610" fill="#fff" font-size="12">Splash · démarrage demandé</text><text x="1114" y="631" fill="#8793ae" font-size="10" font-family="ui-monospace,Menlo">14:32:08</text>
+  </g>
+</svg>

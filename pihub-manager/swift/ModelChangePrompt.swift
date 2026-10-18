@@ -4,7 +4,7 @@ struct ModelChangePrompt: View {
     @ObservedObject var store: HubStore
     let plan: ProviderModelChange
     var configureProvider: () -> Void
-    @State private var expanded = false
+    @State private var expanded = true
     @State private var confirmation: Confirmation?
     @State private var selection: Set<String> = []
     private var eligible: [AffectedAgent] { plan.agents.filter(\.needs_action) }
@@ -15,6 +15,7 @@ struct ModelChangePrompt: View {
     private enum Confirmation: Equatable {
         case agents
         case provider
+        case providerAndAgents
     }
 
     var body: some View {
@@ -37,10 +38,6 @@ struct ModelChangePrompt: View {
                             Text(plan.provider_name).font(.system(size: 10, weight: .medium))
                             Text(plan.provider_restart_reason).font(.system(size: 9)).foregroundStyle(plan.provider_restart_uncertain ? .orange : HubStyle.muted)
                         }
-                        Spacer(minLength: 4)
-                        Button(plan.provider_restart_uncertain ? "Tenter la relance" : "Relancer le provider") {
-                            confirmation = .provider
-                        }.controlSize(.mini)
                     }
                     Divider()
                 }
@@ -60,26 +57,43 @@ struct ModelChangePrompt: View {
                 }
             }
             if !plan.provider_ready {
-                Text("Chargez d’abord ce modèle sur le provider. Les agents restent actifs.").font(.system(size: 9)).foregroundStyle(.orange)
+                Text("Chargez d’abord ce modèle sur le moteur. Les agents restent actifs.").font(.system(size: 9)).foregroundStyle(.orange)
             }
             HStack(spacing: 9) {
-                if !eligible.isEmpty {
+                if plan.provider_restart_available {
+                    Button(plan.provider_restart_uncertain ? "Tenter le moteur seul" : "Relancer seulement le moteur") {
+                        confirmation = .provider
+                    }.disabled(store.busy)
+                    if !eligible.isEmpty {
+                        Button("Moteur + \(selection.count) agent(s)") { confirmation = .providerAndAgents }
+                            .disabled(selection.isEmpty || store.busy)
+                            .buttonStyle(.borderedProminent)
+                    }
+                } else if !eligible.isEmpty {
                     Button(selectedNeedsWarning ? "Tenter la relance de \(selection.count) agent(s)" : "Mettre à jour \(selection.count) agent(s)") { confirmation = .agents }.disabled(!plan.provider_ready || selection.isEmpty || store.busy).buttonStyle(.borderedProminent)
                 } else { Text("Aucune relance automatique nécessaire / disponible.").font(.system(size: 9)).foregroundStyle(HubStyle.muted) }
-                if !plan.provider_ready { Button("Provider…", action: configureProvider) }
+                if !plan.provider_ready { Button("Moteur…", action: configureProvider) }
                 Spacer(minLength: 0)
                 Button("Ignorer") { store.perform("dismiss-model-change", id: plan.id) }.buttonStyle(.plain).foregroundStyle(HubStyle.muted)
             }.font(.system(size: 9)).controlSize(.mini)
         }.padding(12).background(HubStyle.accent.opacity(0.075)).overlay(alignment: .leading) { Rectangle().fill(HubStyle.accent.opacity(0.6)).frame(width: 2) }
         .onAppear { selection = Set(eligible.map(\.id)) }
         .confirmationDialog(
-            confirmation == .provider ? "Relancer le provider ?" : "Appliquer le modèle aux agents sélectionnés ?",
+            confirmation == .provider ? "Relancer le moteur ?" : confirmation == .providerAndAgents ? "Relancer le moteur et les agents liés ?" : "Appliquer le modèle aux agents sélectionnés ?",
             isPresented: Binding(get: { confirmation != nil }, set: { if !$0 { confirmation = nil } }),
             titleVisibility: .visible
         ) {
             if confirmation == .provider {
-                Button("Confirmer la relance du provider", role: .destructive) {
+                Button("Confirmer la relance du moteur", role: .destructive) {
                     store.perform("apply-model-change", id: plan.id, payload: ["restart_provider": true, "confirm_uncertain": plan.provider_restart_uncertain])
+                }
+            } else if confirmation == .providerAndAgents {
+                Button("Relancer le moteur puis \(selection.count) agent(s)", role: .destructive) {
+                    store.perform("apply-model-change", id: plan.id, payload: [
+                        "restart_provider": true,
+                        "agents": Array(selection),
+                        "confirm_uncertain": plan.provider_restart_uncertain || selectedNeedsWarning,
+                    ])
                 }
             } else {
                 Button("Appliquer aux \(selection.count) agent(s)") {
@@ -91,7 +105,11 @@ struct ModelChangePrompt: View {
             if confirmation == .provider {
                 Text(plan.provider_restart_uncertain
                      ? "PiHub va tenter d’arrêter puis de relancer le processus externe/personnalisé. Il peut ne pas répondre à la commande ou ne pas reprendre le nouveau modèle. Vérifiez son état avant de relancer les agents."
-                     : "Le processus du provider va être arrêté puis relancé. Vérifiez qu’il sert le nouveau modèle avant de relancer les agents.")
+                     : "Le processus du moteur va être arrêté puis relancé. Vérifiez qu’il sert le nouveau modèle avant de relancer les agents.")
+            } else if confirmation == .providerAndAgents {
+                Text(plan.provider_restart_uncertain || selectedNeedsWarning
+                     ? "PiHub va d’abord tenter de relancer le moteur, attendre que le nouveau modèle soit prêt, puis appeler le handler de chaque agent sélectionné. Un exécutable personnalisé peut refuser la relance ; aucun agent ne sera arrêté tant que le moteur n’est pas prêt."
+                     : "PiHub relance d’abord le moteur et attend qu’il serve le nouveau modèle. Il appelle ensuite le handler propre à chaque agent sélectionné ; les agents non sélectionnés ne seront pas modifiés.")
             } else {
                 Text(selectedNeedsWarning
                      ? "PiHub va fermer les sessions actives et tenter de les rouvrir avec leur exécutable personnalisé. Cette commande peut échouer. Les autres agents ne seront pas affectés."

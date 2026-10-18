@@ -29,6 +29,20 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(storage.config()['agents'], [])
         self.assertEqual(storage.config()['models'], [])
 
+    def test_recipe_environment_does_not_leak_host_python_paths(self):
+        recipe = {'env': {'UV_CACHE_DIR': '{data}/uv-cache'}}
+        values = {'data': '/tmp/pihub-data'}
+        with patch.dict(os.environ, {
+            'PYTHONHOME': '/xcode/python3.9',
+            'PYTHONPATH': '/xcode/python3.9/site-packages',
+            'VIRTUAL_ENV': '/old/environment',
+        }, clear=False):
+            environment = installer.recipe_environment(recipe, values)
+        self.assertNotIn('PYTHONHOME', environment)
+        self.assertNotIn('PYTHONPATH', environment)
+        self.assertNotIn('VIRTUAL_ENV', environment)
+        self.assertEqual(environment['UV_CACHE_DIR'], '/tmp/pihub-data/uv-cache')
+
     def test_presence_detects_instance_override_without_install_receipt(self):
         entry = dict(id='presence', adapter='presence')
         manifest = dict(id='presence', fields=[], executables=['/not/present'])

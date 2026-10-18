@@ -1,54 +1,53 @@
 # Manuel PiHub
 
-[Accueil du projet](../README.md)
+[← Accueil du projet](../README.md)
 
-Ce manuel suit deux parcours : prendre en main PiHub, puis étendre son fonctionnement avec vos propres intégrations. Les intitulés de boutons correspondent à l’interface actuelle ; les captures de configuration et les exemples utilisent des valeurs de démonstration.
+PiHub se prend en main dans l’application, pas en mémorisant une liste de commandes. Les guides ci-dessous indiquent ce que vous devez cliquer, ce que vous devez renseigner, puis ce que vous devez constater avant de passer à l’étape suivante.
 
-## Lire dans l’ordre
+<img src="assets/pihub-interface.svg" alt="Aperçu de la fenêtre PiHub : moteurs, agents et ressources" width="100%">
 
-| N° | Chapitre | Contenu |
+> **Vocabulaire :** l’interface appelle **moteur** ce que les manifests appellent `provider`. Les mots `provider`, `kind: "provider"` et `provider_field` restent dans les extraits JSON/Python car ils font partie du format public.
+
+## Choisissez votre parcours
+
+| Je veux… | Commencez ici | Résultat attendu |
 | --- | --- | --- |
-| 01 | [Installation](INSTALLATION.md) | Prérequis, construction, lancement, mise à jour et commandes Make. |
-| 02 | [Utilisation](USAGE.md) | Premier provider, premier agent, instances, relances et diagnostics. |
-| 03 | [Modèles](MODELS.md) | Références, fichiers GGUF, dépôts MLX, Ollama, API et découverte. |
-| 04 | [Import et export](IMPORT_EXPORT.md) | Dossiers d’intégration, workspace, sauvegardes et partage. |
-| 05 | [Créer une intégration](EXTENSIONS.md) | Parcours pas à pas pour un provider et un agent personnalisés. |
-| 06 | [Référence du manifeste](MANIFEST_REFERENCE.md) | Champs JSON, formulaires, hooks, variables et contrats Python. |
-| 07 | [Installation des runtimes](CATALOG.md) | Recettes, versions, commits, prérequis et suivi des jobs. |
-| 08 | [Architecture](ARCHITECTURE.md) | Couches, flux, fichiers, suivi des processus et limites de mesure. |
-| 09 | [Développement](DEVELOPMENT.md) | Structure du code, tests, exemples, CI et préparation de GitHub. |
-| 10 | [Dépannage](TROUBLESHOOTING.md) | Symptômes courants et chemins de diagnostic. |
+| Ouvrir PiHub pour la première fois | [01 · Installation](INSTALLATION.md) | L’icône PiHub apparaît dans la barre des menus. |
+| Utiliser un serveur que j’ai déjà | [API existante](USAGE.md#connecter-une-api-existante) | Le test API répond et l’agent voit le moteur. |
+| Installer un moteur local | [Moteur local](USAGE.md#installer-un-moteur-local) | Son état devient **Prêt** et le résumé indique `Sert · …`. |
+| Lancer Pi, Hermes ou Codex | [Ajouter un agent](USAGE.md#ajouter-et-ouvrir-un-agent) | Une session Terminal ou un dashboard s’ouvre avec le bon routage. |
+| Ajouter des poids ou une référence de modèle | [03 · Modèles](MODELS.md) | Le format est visible et seul un moteur compatible est proposé. |
+| Importer le dossier d’un autre utilisateur | [Importer un dossier](IMPORT_EXPORT.md#importer-une-intégration) | Le manifeste est validé avant la copie et avant toute exécution. |
+| Ajouter mon propre programme | [05 · Extensions](EXTENSIONS.md) | Votre dossier apparaît dans Explorer et ses handlers deviennent disponibles. |
+| Chercher une erreur de port ou de lancement | [10 · Dépannage](TROUBLESHOOTING.md) | Vous trouvez le journal et l’action sûre à effectuer. |
 
-## Trouver directement le bon parcours
-
-- **Je veux utiliser un serveur que j’ai déjà** : [API existante](USAGE.md#connecter-une-api-existante).
-- **Je veux installer un moteur local** : [runtime local](USAGE.md#installer-un-provider-local), puis [modèles](MODELS.md).
-- **Je veux importer le provider d’un autre utilisateur** : [import de dossier](IMPORT_EXPORT.md).
-- **Je veux ajouter mon programme** : [modding](EXTENSIONS.md), puis [référence](MANIFEST_REFERENCE.md).
-- **Je veux un exemple qui fonctionne sans modèle** : [atelier provider + agent](examples/README.md).
-- **Je veux partager mon projet sur GitHub** : [publication](DEVELOPMENT.md).
-- **Le modèle affiché ne correspond pas au modèle en cours** : [changement de modèle](USAGE.md#changer-le-modèle-dun-provider).
-- **Je cherche le fichier qui contient un réglage** : [chemins et stockage](ARCHITECTURE.md#où-sont-les-fichiers).
-
-## Schéma de lecture
+## Dans quel ordre lire ?
 
 ```mermaid
 flowchart TD
-    S["Départ"] --> I["Installer PiHub"]
-    I --> U["Configurer un provider et un agent"]
-    U --> M["Ajouter ses références de modèles"]
-    U --> E["Importer une intégration existante"]
-    E --> C["Créer son propre dossier d’intégration"]
-    C --> R["Comprendre le manifeste et les handlers"]
-    R --> T["Tester puis exporter"]
+    A["Installer PiHub"] --> B["Ajouter ou connecter un moteur"]
+    B --> C["Choisir / référencer un modèle"]
+    C --> D["Relier un agent"]
+    D --> E["Lancer, observer, ajuster"]
+    B --> F["Importer ou développer une intégration"]
+    F --> G["Valider, partager, contribuer"]
 ```
 
-## Sources et exemples
+## Le manuel complet
 
-- [Intégrations livrées](../pihub-manager/integrations/) : exemples de programmes réels et recettes de référence.
-- [Exemples pédagogiques](examples/README.md) : deux dossiers importables et un contrôle de bout en bout.
-- [Schéma du manifeste](manifest.schema.json).
-- [Schéma du bloc `install`](catalog.schema.json).
-- [Guide de contribution](../CONTRIBUTING.md).
+| N° | Guide | À utiliser quand… |
+| --- | --- | --- |
+| 01 | [Installation](INSTALLATION.md) | Vous téléchargez, construisez ou mettez à jour PiHub. |
+| 02 | [Utilisation](USAGE.md) | Vous configurez un moteur, un agent, un port ou une session. |
+| 03 | [Modèles](MODELS.md) | Vous avez un GGUF, un dépôt MLX, une bibliothèque Ollama, une API ou un format personnel. |
+| 04 | [Import / export](IMPORT_EXPORT.md) | Vous échangez un dossier, sauvegardez ou changez de machine. |
+| 05 | [Extensions](EXTENSIONS.md) | Vous créez une intégration pour un moteur ou un agent. |
+| 06 | [Référence du manifeste](MANIFEST_REFERENCE.md) | Vous avez besoin du contrat JSON ou de la signature d’un handler. |
+| 07 | [Catalogue](CATALOG.md) | Vous écrivez ou auditez une recette d’installation/version. |
+| 08 | [Architecture](ARCHITECTURE.md) | Vous devez comprendre les couches, les fichiers et les processus suivis. |
+| 09 | [Développement](DEVELOPMENT.md) | Vous modifiez le dépôt, lancez les tests ou préparez une contribution. |
+| 10 | [Dépannage](TROUBLESHOOTING.md) | Une installation, un modèle, un port ou une session ne se comporte pas comme prévu. |
 
-Les exemples pédagogiques utilisent un serveur d’écho. Les tableaux de recettes indiquent les prérequis ; aucun chapitre ne suppose que tous les moteurs ou modèles sont déjà installés.
+## Exemple importable sans modèle
+
+Avant d’installer un runtime tiers, vous pouvez suivre [l’atelier d’exemple](examples/README.md). Il contient un petit moteur HTTP d’écho et un agent terminal. Il vérifie le même parcours que les intégrations réelles — import, configuration, démarrage, routage, journal et arrêt — sans télécharger de poids.

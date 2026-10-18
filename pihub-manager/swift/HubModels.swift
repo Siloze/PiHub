@@ -105,6 +105,7 @@ struct HubRuntime: Codable, Identifiable {
   var error: String
   var endpoint: String
   var models: [String]
+  var profile_configured: Bool?
   var gateway_initialized: Bool?
   var label: String {
     if state == "ready" { return managed ? "Prêt" : "Connecté · externe" }
@@ -187,6 +188,16 @@ struct CatalogEntry: Codable, Identifiable {
   let prerequisites: [String]
   let min_macos: Int?
   let steps: [RecipeStep]
+}
+
+enum HubWindowAction {
+  case showMain
+  case addInstance(String)
+  case editModels
+  case showLog
+  case catalogDetail(String)
+  case catalogGuide
+  case catalogImport
 }
 struct InstallJob: Codable, Identifiable {
   let id: String
@@ -321,6 +332,7 @@ final class HubStore: ObservableObject {
   @Published var page = "dashboard"
   @Published var inspectID: String?
   @Published var requestedImportKind: String?
+  @Published var windowAction: HubWindowAction?
   @Published var search = ""
   @Published var busy = false
   @Published var refreshing = false
@@ -354,11 +366,17 @@ final class HubStore: ObservableObject {
   func setupLabel(_ item: HubInstance) -> String {
     guard let integration = adapter(item) else { return "Intégration absente" }
     if runtime(item)?.state == "failed" { return "Échec" }
+    if integration.id == "hermes", runtime(item)?.profile_configured == false {
+      return "Profil Hermes à configurer"
+    }
+    if integration.id == "hermes", runtime(item)?.gateway_initialized == false {
+      return "Gateway Hermes à initialiser"
+    }
     if !(integration.executables ?? []).isEmpty && (snapshot?.availability[item.id] ?? "").isEmpty {
       return "Exécutable absent"
     }
     if integration.routing?.required == true && provider(for: item) == nil {
-      return "Provider à choisir"
+      return "Moteur à choisir"
     }
     if integration.kind == "provider", integration.external != true,
       integration.requires_model != false,

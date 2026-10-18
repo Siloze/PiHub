@@ -50,7 +50,7 @@ final class HubAppDelegate: NSObject, NSApplicationDelegate {
       self?.statusItem.button?.image = NSImage(
         systemSymbolName: count > 0 ? "circle.hexagongrid.fill" : "circle.hexagongrid",
         accessibilityDescription: "PiHub")
-      self?.statusItem.button?.toolTip = "PiHub · \(count) provider(s) prêt(s)"
+      self?.statusItem.button?.toolTip = "PiHub · \(count) moteur(s) prêt(s)"
     }
     store.inspectRequested = { [weak self] in self?.showWindow() }
     timer = Timer.scheduledTimer(withTimeInterval: 4, repeats: true) { [weak self] _ in
@@ -95,7 +95,8 @@ final class HubAppDelegate: NSObject, NSApplicationDelegate {
       store: store,
       expand: { [weak self] in self?.showWindow() },
       editInstance: { [weak self] item in self?.showInstanceEditor(item) },
-      importFolder: { [weak self] kind in self?.showFolderImporter(kind) })
+      importFolder: { [weak self] kind in self?.showFolderImporter(kind) },
+      openInWindow: { [weak self] action in self?.showInWindow(action) })
   }
   @objc func activeSpaceDidChange(_ notification: Notification) {
     pendingSpaceRestore?.cancel()
@@ -158,6 +159,10 @@ final class HubAppDelegate: NSObject, NSApplicationDelegate {
   private func showFolderImporter(_ kind: String) {
     showWindow()
     DispatchQueue.main.async { [weak self] in self?.store.requestedImportKind = kind }
+  }
+  private func showInWindow(_ action: HubWindowAction) {
+    showWindow()
+    DispatchQueue.main.async { [weak self] in self?.store.windowAction = action }
   }
 }
 

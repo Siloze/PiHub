@@ -257,7 +257,7 @@ struct InstanceEditor: View {
             if let unbound = adapter?.routing?.unbound_value, !unbound.isEmpty {
               Text(adapter?.routing?.unbound_label ?? "Configuration native").tag(unbound)
             }
-            Text("Choisir un provider…").tag("")
+            Text("Choisir un moteur…").tag("")
             ForEach(store.snapshot?.config.providers ?? []) { Text($0.name).tag($0.id) }
           }.labelsHidden()
         case "slider":
@@ -276,7 +276,7 @@ struct InstanceEditor: View {
           Menu("Choisir dans le catalogue") {
             ForEach(compatibleModels) { model in
               Button(model.name + " · " + model.format.uppercased()) {
-                value.wrappedValue = model.format == "gguf" ? model.path : model.id
+                value.wrappedValue = model.path.isEmpty ? model.id : model.path
               }
             }
             if adapter?.kind == "provider", let runtime = store.runtime(item) {
@@ -406,7 +406,7 @@ struct InstanceEditor: View {
             .foregroundStyle(initialized == true ? .green : .orange)
             Text(
               initialized == true
-                ? "Le gateway Hermes hôte sert le profil dédié à cette instance. Réappliquez la configuration après un changement de provider ou de modèle."
+                ? "Le gateway Hermes hôte sert le profil dédié à cette instance. Réappliquez la configuration après un changement de moteur ou de modèle."
                 : "Hermes utilise un gateway hôte partagé. Cette initialisation configure le profil PiHub puis redémarre ce gateway pour le prendre en charge."
             ).font(.system(size: 11)).foregroundStyle(HubStyle.muted)
             Button(initialized == true ? "Réappliquer la configuration PiHub" : "Initialiser le gateway PiHub") {
@@ -614,7 +614,17 @@ struct ModelEditor: View {
   @Environment(\.dismiss) private var dismiss
   @State private var name = ""
   @State private var identifier = ""
-  @State private var format = "mlx"
+  @State private var format = ""
+  @State private var customFormat = ""
+  private var formatOptions: [String] {
+    let declared = store.snapshot?.registry.compactMap(\.model_format).filter {
+      !$0.isEmpty && $0 != "any"
+    } ?? []
+    let existing = store.snapshot?.models.map(\.format).filter { !$0.isEmpty } ?? []
+    return Array(Set(declared + existing)).sorted()
+  }
+  private var persistedFormat: String { format == "other" ? customFormat : format }
+  private func label(for value: String) -> String { value.uppercased() }
   var body: some View {
     VStack(alignment: .leading, spacing: 20) {
       Text("Enregistrer un modèle").font(.title2.bold())
@@ -622,14 +632,18 @@ struct ModelEditor: View {
         .foregroundStyle(HubStyle.muted)
       TextField("Nom affiché", text: $name).textFieldStyle(.roundedBorder)
       Picker("Format", selection: $format) {
-        Text("MLX / safetensors").tag("mlx")
-        Text("GGUF").tag("gguf")
-        Text("Ollama").tag("ollama")
-        Text("API distant").tag("api")
+        ForEach(formatOptions, id: \.self) { value in
+          Text(label(for: value)).tag(value)
+        }
+        Text("Autre / personnalisé").tag("other")
+      }
+      if format == "other" {
+        TextField("Format personnalisé (ex. exl2, vllm)", text: $customFormat)
+          .textFieldStyle(.roundedBorder)
       }
       HStack {
         TextField(
-          format == "gguf" ? "/chemin/model.gguf" : "organisation/modèle", text: $identifier
+          persistedFormat == "gguf" ? "/chemin/model.gguf" : "identifiant ou chemin du modèle", text: $identifier
         ).textFieldStyle(.roundedBorder)
         Button {
           let panel = NSOpenPanel()
@@ -647,14 +661,16 @@ struct ModelEditor: View {
         Spacer()
         Button("Enregistrer") {
           let model = HubModel(
-            id: identifier, name: name, format: format, path: format == "gguf" ? identifier : "",
+            id: identifier, name: name, format: persistedFormat,
+            path: identifier.hasPrefix("/") ? identifier : "",
             size: 0, source: "personal")
           store.perform("model-save", payload: ["model": HubBridge.object(model)]) { success in
             if success { dismiss() }
           }
-        }.buttonStyle(.borderedProminent).disabled(name.isEmpty || identifier.isEmpty || store.busy)
+        }.buttonStyle(.borderedProminent).disabled(name.isEmpty || identifier.isEmpty || persistedFormat.isEmpty || store.busy)
       }
     }.padding(28).frame(width: 540).preferredColorScheme(.dark)
+      .onAppear { if format.isEmpty { format = formatOptions.first ?? "other" } }
   }
 }
 
@@ -791,7 +807,7 @@ struct ManifestSettingsRow: View {
         AdapterMark(adapter: adapter, small: true)
         Text(adapter.name).font(.system(size: 12))
         Spacer()
-        Text(adapter.kind == "agent" ? "Agent" : "Provider").font(.system(size: 10))
+        Text(adapter.kind == "agent" ? "Agent" : "Moteur").font(.system(size: 10))
           .foregroundStyle(HubStyle.muted)
         Image(systemName: "slider.horizontal.3").foregroundStyle(HubStyle.accent)
       }

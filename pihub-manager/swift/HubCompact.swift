@@ -7,10 +7,9 @@ struct HubCompactView: View {
   let expand: () -> Void
   let editInstance: (HubInstance) -> Void
   let importFolder: (String) -> Void
-  @State private var addKind: String?
-  @State private var modelSheet = false
+  let openInWindow: (HubWindowAction) -> Void
   private let tabs = [
-    ("dashboard", "Résumé", "square.grid.2x2"), ("providers", "Providers", "server.rack"),
+    ("dashboard", "Résumé", "square.grid.2x2"), ("providers", "Moteurs", "server.rack"),
     ("agents", "Agents", "command"), ("models", "Modèles", "cube"),
     ("catalog", "Explorer", "square.grid.3x3"), ("activity", "Activité", "waveform.path"),
     ("settings", "Réglages", "slider.horizontal.3"),
@@ -40,9 +39,9 @@ struct HubCompactView: View {
               Capsule().fill(store.page == tab.0 ? HubStyle.accent : Color.clear).frame(
                 width: 16, height: 2)
             }
-            .frame(maxWidth: .infinity).foregroundStyle(
+            .frame(maxWidth: .infinity, minHeight: 46).contentShape(Rectangle()).foregroundStyle(
               store.page == tab.0 ? Color.white : HubStyle.muted)
-          }.buttonStyle(.plain).help(tab.1)
+          }.buttonStyle(.plain).frame(maxWidth: .infinity).contentShape(Rectangle()).help(tab.1)
         }
       }.padding(.horizontal, 10).padding(.bottom, 8)
       Divider().overlay(HubStyle.line)
@@ -51,31 +50,36 @@ struct HubCompactView: View {
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
           if let s = store.snapshot {
-            ForEach(s.model_changes) { plan in
-              ModelChangePrompt(
-                store: store, plan: plan,
-                configureProvider: {
-                  if let provider = s.config.providers.first(where: { $0.id == plan.provider_id }) {
-                    editInstance(provider)
-                  }
-                }
-              ).id(plan.id)
+            if !s.model_changes.isEmpty {
+              Button {
+                openInWindow(.showMain)
+              } label: {
+                HStack(spacing: 9) {
+                  Image(systemName: "arrow.triangle.branch").foregroundStyle(HubStyle.accent)
+                  Text("Changements de modèle à appliquer")
+                  Spacer()
+                  Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    .font(.system(size: 8)).foregroundStyle(HubStyle.muted)
+                }.font(.system(size: 10, weight: .medium)).padding(11)
+                  .background(HubStyle.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+              }.buttonStyle(.plain)
             }
             switch store.page {
             case "providers":
               ProvidersWorkspace(
                 store: store, items: s.config.providers, edit: editInstance,
-                add: { addKind = "provider" },
+                add: { openInWindow(.addInstance("provider")) },
                 importManifest: { importFolder("provider") }, compact: true)
             case "agents":
               AgentsWorkspace(
-                store: store, snapshot: s, edit: editInstance, add: { addKind = "agent" },
+                store: store, snapshot: s, edit: editInstance, add: { openInWindow(.addInstance("agent")) },
                 importManifest: { importFolder("agent") }, compact: true)
             case "models":
               ModelsWorkspace(
-                store: store, snapshot: s, edit: editInstance, add: { modelSheet = true },
+                store: store, snapshot: s, edit: editInstance, add: { openInWindow(.editModels) },
                 compact: true)
-            case "catalog": CatalogWorkspace(store: store, compact: true, edit: editInstance)
+            case "catalog": CatalogWorkspace(
+              store: store, compact: true, edit: editInstance, openInWindow: openInWindow)
             case "activity": ActivityWorkspace(store: store, snapshot: s, compact: true)
             case "settings": compactSettings(s)
             default:
@@ -109,32 +113,8 @@ struct HubCompactView: View {
     }.frame(width: 420).frame(maxHeight: .infinity).background(HubStyle.background).foregroundStyle(
       Color.white.opacity(0.92)
     ).preferredColorScheme(.dark).tint(HubStyle.accent)
-      .sheet(isPresented: Binding(get: { addKind != nil }, set: { if !$0 { addKind = nil } })) {
-        AdapterPicker(store: store, kind: addKind ?? "provider") { instance in
-          addKind = nil
-          DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { editInstance(instance) }
-        }
-      }
-      .sheet(isPresented: $modelSheet) { ModelEditor(store: store) }
-      .sheet(
-        isPresented: Binding(
-          get: { store.showingLog }, set: { store.showingLog = $0 })
-      ) {
-        VStack(alignment: .leading, spacing: 12) {
-          HStack {
-            Text("Journal").font(.headline)
-            Spacer()
-            Button {
-              store.showingLog = false
-            } label: {
-              Text("Fermer").font(.system(size: 9, weight: .medium))
-            }.buttonStyle(.plain).foregroundStyle(HubStyle.muted)
-          }
-          ScrollView {
-            Text(store.logText).font(.system(size: 10, design: .monospaced)).textSelection(.enabled)
-              .frame(maxWidth: .infinity, alignment: .leading)
-          }
-        }.padding(18).frame(width: 395, height: 430).preferredColorScheme(.dark)
+      .onChange(of: store.showingLog) { shown in
+        if shown { openInWindow(.showLog) }
       }
   }
   private func banner(_ text: String, error: Bool) -> some View {

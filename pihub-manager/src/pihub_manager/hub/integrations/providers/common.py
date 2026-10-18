@@ -70,13 +70,16 @@ def start(ctx, request):
 
 def stop(ctx, request):
     rt.stop(ctx.item['id'])
+    values = values_for(ctx.item, ctx.manifest)
+    if values.get('port'):
+        rt.wait_port_free(values.get('host', '127.0.0.1'), values['port'])
     return {'message': 'Processus arrêté.'}
 
 
 def restart(ctx, request):
     if not rt.owned(ctx.item['id'], rt.processes()):
         if not request.get('confirm_external'):
-            raise ValueError('Ce provider est externe à PiHub. Confirmez d’abord la prise en charge temporaire avant de tenter sa relance.')
+            raise ValueError('Ce moteur est externe à PiHub. Confirmez d’abord la prise en charge temporaire avant de tenter sa relance.')
         # Only adopt a process the provider's own status handler positively identified
         # by its API port and process signature. The caller has explicitly confirmed
         # that PiHub may signal that PID; unrelated processes are never searched/killed.
@@ -88,7 +91,7 @@ def restart(ctx, request):
 def test(ctx, request):
     state = ctx.call('status')
     if not state['ready']:
-        raise ValueError(state.get('error') or 'Le provider n’est pas prêt.')
+        raise ValueError(state.get('error') or 'Le moteur n’est pas prêt.')
     return {'message': 'API disponible.'}
 
 

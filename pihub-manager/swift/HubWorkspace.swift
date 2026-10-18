@@ -113,11 +113,11 @@ struct ProvidersWorkspace: View {
           Button("Importer un dossier…", systemImage: "folder.badge.plus", action: importManifest)
         } label: {
           Image(systemName: "plus").frame(width: 24, height: 24)
-        }.menuStyle(.borderlessButton).controlSize(.small).help("Ajouter ou importer un provider")
+        }.menuStyle(.borderlessButton).controlSize(.small).help("Ajouter ou importer un moteur")
       }
       if items.isEmpty {
         QuietEmpty(
-          title: "Aucun provider",
+          title: "Aucun moteur",
           detail: "Ajoutez un template, installez un moteur ou connectez une API."
         ) { store.page = "catalog" }
       } else {
@@ -261,7 +261,7 @@ struct AgentsWorkspace: View {
     if let provider = store.provider(for: item) { return provider.name }
     let target = item.settings[store.adapter(item)?.routing?.provider_field ?? "provider"] ?? ""
     return target == store.adapter(item)?.routing?.unbound_value
-      ? store.adapter(item)?.routing?.unbound_label ?? "Compte natif" : "Sans provider"
+      ? store.adapter(item)?.routing?.unbound_label ?? "Compte natif" : "Sans moteur"
   }
   private var filtered: [HubInstance] {
     snapshot.config.agents.filter {
@@ -274,7 +274,7 @@ struct AgentsWorkspace: View {
   var body: some View {
     VStack(alignment: .leading, spacing: compact ? 17 : 24) {
       HStack {
-        WorkspaceSearch(text: $search, prompt: "Rechercher un agent ou son provider")
+        WorkspaceSearch(text: $search, prompt: "Rechercher un agent ou son moteur")
         Menu {
           Button("Ajouter un agent", systemImage: "plus", action: add)
           Button("Importer un dossier…", systemImage: "folder.badge.plus", action: importManifest)
@@ -308,6 +308,7 @@ struct AgentsWorkspace: View {
   private func agentRow(_ item: HubInstance, active: Bool) -> some View {
     let runtime = store.runtime(item)
     let pinned = item.settings[store.adapter(item)?.routing?.model_field ?? "model"] ?? ""
+    let needsHermesProfile = store.adapter(item)?.id == "hermes" && runtime?.profile_configured == false
     return HStack(alignment: active ? .top : .center, spacing: compact ? 10 : 16) {
       Image(systemName: store.adapter(item)?.icon ?? "terminal").font(
         .system(size: active ? 18 : 13)
@@ -325,7 +326,7 @@ struct AgentsWorkspace: View {
           HStack(spacing: 5) {
             Image(systemName: "arrow.triangle.branch")
             Button(route(item)) { if let provider = store.provider(for: item) { edit(provider) } }
-              .buttonStyle(.plain).help("Provider rattaché")
+              .buttonStyle(.plain).help("Moteur rattaché")
           }.font(.system(size: 10)).foregroundStyle(HubStyle.muted)
           let actual = runtime?.model ?? ""
           Text(
@@ -339,10 +340,20 @@ struct AgentsWorkspace: View {
         }
       }.frame(maxWidth: .infinity, alignment: .leading)
       if !active {
-        Text(store.setupLabel(item) == "Arrêté" ? route(item) : store.setupLabel(item)).font(
-          .system(size: 9)
-        ).foregroundStyle(HubStyle.muted.opacity(0.7))
-          .lineLimit(1).frame(maxWidth: compact ? 75 : 150, alignment: .trailing)
+        if needsHermesProfile {
+          Button("Configurer le profil") {
+            store.perform("gateway", id: item.id)
+          }
+          .buttonStyle(.borderless)
+          .font(.system(size: 9, weight: .medium))
+          .foregroundStyle(.orange)
+          .help("Crée le profil Hermes PiHub, applique le moteur/modèle, puis initialise son gateway.")
+        } else {
+          Text(store.setupLabel(item) == "Arrêté" ? route(item) : store.setupLabel(item)).font(
+            .system(size: 9)
+          ).foregroundStyle(HubStyle.muted.opacity(0.7))
+            .lineLimit(1).frame(maxWidth: compact ? 75 : 150, alignment: .trailing)
+        }
       } else if !compact {
         VStack(alignment: .trailing, spacing: 6) {
           Text(String(format: "%.0f Mo", runtime?.memory ?? 0))
@@ -369,6 +380,26 @@ struct ModelsWorkspace: View {
   var compact = false
   @State private var search = ""
   @State private var format = "all"
+  private var formats: [String] {
+    let providerFormats = snapshot.registry.compactMap(\.model_format).filter { !$0.isEmpty && $0 != "any" }
+    let savedFormats = snapshot.models.map(\.format).filter { !$0.isEmpty }
+    return ["all"] + Array(Set(providerFormats + savedFormats)).sorted()
+  }
+  private func formatLabel(_ value: String) -> String {
+    value == "all" ? "Tout" : value.uppercased()
+  }
+  private func icon(for model: HubModel) -> String {
+    switch model.format.lowercased() {
+    case "gguf": return "cpu"
+    case "mlx": return "memorychip"
+    case "ollama": return "circle.hexagongrid"
+    case "api": return "network"
+    default: return "cube.transparent"
+    }
+  }
+  private func tint(for model: HubModel) -> Color {
+    model.format.lowercased() == "gguf" ? .orange : .cyan
+  }
   private var filtered: [HubModel] {
     snapshot.models.filter {
       (format == "all" || $0.format == format)
@@ -388,11 +419,11 @@ struct ModelsWorkspace: View {
         }
       }.controlSize(.small)
       HStack(spacing: 5) {
-        ForEach(["all", "mlx", "gguf", "ollama", "api"], id: \.self) { value in
+        ForEach(formats, id: \.self) { value in
           Button {
             format = value
           } label: {
-            Text(value == "all" ? "Tout" : value.uppercased()).font(
+            Text(formatLabel(value)).font(
               .system(size: 9, weight: .medium)
             ).padding(.horizontal, 10).padding(.vertical, 6).background(
               format == value ? Color.cyan.opacity(0.16) : Color.clear, in: Capsule()
@@ -410,10 +441,10 @@ struct ModelsWorkspace: View {
       ForEach(filtered) { model in
         HStack(spacing: compact ? 10 : 18) {
           VStack(spacing: 5) {
-            Image(systemName: model.format == "gguf" ? "cpu" : "cube.transparent").font(
+            Image(systemName: icon(for: model)).font(
               .system(size: compact ? 19 : 27, weight: .light))
             Text(model.format.uppercased()).font(.system(size: 7, weight: .bold)).tracking(1)
-          }.foregroundStyle(model.format == "gguf" ? Color.orange : .cyan).frame(
+          }.foregroundStyle(tint(for: model)).frame(
             width: compact ? 40 : 60)
           VStack(alignment: .leading, spacing: 5) {
             Text(model.name).font(.system(size: compact ? 11 : 14, weight: .medium)).lineLimit(2)
@@ -440,7 +471,7 @@ struct ModelsWorkspace: View {
               Button(provider.name) {
                 var draft = provider
                 draft.settings[store.adapter(provider)?.model_field ?? "model"] =
-                  model.format == "gguf" ? model.path : model.id
+                  model.path.isEmpty ? model.id : model.path
                 store.perform("save", payload: ["item": HubBridge.object(draft)])
               }
             }
@@ -452,7 +483,7 @@ struct ModelsWorkspace: View {
             }
           } label: {
             Image(systemName: "arrow.up.right")
-          }.menuStyle(.borderlessButton).frame(width: 25).help("Affecter à un provider")
+          }.menuStyle(.borderlessButton).frame(width: 25).help("Affecter à un moteur")
         }.padding(.vertical, compact ? 5 : 10)
         modelAttachments(model)
         Divider().overlay(HubStyle.line)
@@ -502,31 +533,164 @@ struct ModelsWorkspace: View {
   }
 }
 
+/// A dependency-first view of the local stack.  Provider nodes are roots and
+/// their routed agents are branches, so an inactive item remains visible in
+/// context rather than being mixed into a flat list of processes.
+struct InferenceTopology: View {
+  @ObservedObject var store: HubStore
+  let snapshot: HubSnapshot
+  let edit: (HubInstance) -> Void
+  var compact = false
+
+  private var providers: [HubInstance] {
+    snapshot.config.providers.sorted { lhs, rhs in
+      (store.isActive(lhs) ? 0 : 1, lhs.name) < (store.isActive(rhs) ? 0 : 1, rhs.name)
+    }
+  }
+  private func linked(_ provider: HubInstance) -> [HubInstance] {
+    snapshot.config.agents.filter { store.provider(for: $0)?.id == provider.id }
+      .sorted { lhs, rhs in
+        (store.isActive(lhs) ? 0 : 1, lhs.name) < (store.isActive(rhs) ? 0 : 1, rhs.name)
+      }
+  }
+  private var unboundAgents: [HubInstance] {
+    snapshot.config.agents.filter { store.provider(for: $0) == nil }
+      .sorted { lhs, rhs in
+        (store.isActive(lhs) ? 0 : 1, lhs.name) < (store.isActive(rhs) ? 0 : 1, rhs.name)
+      }
+  }
+  private func shortModel(_ model: String) -> String {
+    model.split(separator: "/").last.map(String.init) ?? model
+  }
+  private func modelSummary(_ item: HubInstance, runtime: HubRuntime?, served: Bool) -> String {
+    let live = Array(Set((runtime?.models ?? []).filter { !$0.isEmpty })).sorted()
+    if !live.isEmpty { return live.map(shortModel).joined(separator: "  ·  ") }
+    if let model = runtime?.model, !model.isEmpty { return shortModel(model) }
+    let field = store.adapter(item)?.kind == "provider"
+      ? (store.adapter(item)?.model_field ?? "model")
+      : (store.adapter(item)?.routing?.model_field ?? "model")
+    let configured = item.settings[field] ?? ""
+    return configured.isEmpty ? "" : (served ? configured : shortModel(configured))
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: compact ? 11 : 15) {
+      if !compact { Eyebrow(title: "Circuit d’inférence", detail: "PROVIDER → AGENT") }
+      let active = providers.filter { store.isActive($0) }
+      let stopped = providers.filter { !store.isActive($0) }
+      if !active.isEmpty { providerSection("EN COURS", providers: active, active: true) }
+      if !stopped.isEmpty { providerSection("ARRÊTÉS · CONFIGURÉS", providers: stopped, active: false) }
+      if !unboundAgents.isEmpty { unboundSection }
+    }
+  }
+
+  @ViewBuilder private func providerSection(_ title: String, providers: [HubInstance], active: Bool)
+    -> some View
+  {
+    VStack(alignment: .leading, spacing: compact ? 5 : 8) {
+      HStack(spacing: 7) {
+        Circle().fill(active ? Color.mint : HubStyle.muted.opacity(0.55)).frame(width: 5, height: 5)
+        Text(title).font(.system(size: 8, weight: .semibold)).tracking(1.1)
+          .foregroundStyle(active ? HubStyle.muted : HubStyle.muted.opacity(0.65))
+      }
+      ForEach(providers) { provider in providerNode(provider) }
+    }
+  }
+
+  private func providerNode(_ provider: HubInstance) -> some View {
+    let active = store.isActive(provider)
+    let agents = linked(provider)
+    let runtime = store.runtime(provider)
+    let models = modelSummary(provider, runtime: runtime, served: active)
+    return VStack(alignment: .leading, spacing: compact ? 3 : 5) {
+      Button { edit(provider) } label: {
+        HStack(spacing: 9) {
+          AdapterMark(adapter: store.adapter(provider), small: true)
+            .opacity(active ? 1 : 0.42)
+          VStack(alignment: .leading, spacing: 2) {
+            Text(provider.name).font(.system(size: compact ? 10 : 12, weight: .semibold))
+            Text(active ? (runtime?.label ?? "En cours") : store.setupLabel(provider))
+              .font(.system(size: 8)).foregroundStyle(active ? Color.mint : HubStyle.muted)
+            if !models.isEmpty {
+              Text((active ? "Sert · " : "Prévu · ") + models)
+                .font(.system(size: 8, design: .monospaced)).foregroundStyle(HubStyle.muted)
+                .lineLimit(compact ? 1 : 2).truncationMode(.middle)
+            }
+          }
+          Spacer(minLength: 4)
+          Image(systemName: "chevron.right").font(.system(size: 7, weight: .semibold))
+            .foregroundStyle(HubStyle.muted.opacity(active ? 0.8 : 0.35))
+        }
+        .padding(.vertical, compact ? 4 : 6)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .opacity(active ? 1 : 0.52)
+      if agents.isEmpty {
+        Text("╰─ Aucun agent rattaché")
+          .font(.system(size: 8, design: .monospaced)).foregroundStyle(HubStyle.muted.opacity(active ? 0.75 : 0.42))
+          .padding(.leading, compact ? 26 : 36)
+      } else {
+        ForEach(Array(agents.enumerated()), id: \.element.id) { index, agent in
+          agentBranch(agent, last: index == agents.count - 1)
+        }
+      }
+    }
+    .padding(.vertical, compact ? 1 : 3)
+  }
+
+  private func agentBranch(_ agent: HubInstance, last: Bool) -> some View {
+    let active = store.isActive(agent)
+    let runtime = store.runtime(agent)
+    let model = modelSummary(agent, runtime: runtime, served: active)
+    return HStack(spacing: 6) {
+      Text(last ? "╰─" : "├─").font(.system(size: compact ? 10 : 11, design: .monospaced))
+        .foregroundStyle(HubStyle.muted.opacity(active ? 0.85 : 0.4))
+      Button { edit(agent) } label: {
+        HStack(spacing: 6) {
+          Image(systemName: store.adapter(agent)?.icon ?? "command")
+            .font(.system(size: compact ? 9 : 10)).frame(width: 12)
+          VStack(alignment: .leading, spacing: 1) {
+            Text(agent.name).font(.system(size: compact ? 9 : 10, weight: active ? .medium : .regular))
+            if !model.isEmpty {
+              Text((active ? "· " : "prévu · ") + model)
+                .font(.system(size: 7, design: .monospaced)).foregroundStyle(HubStyle.muted)
+                .lineLimit(1).truncationMode(.middle)
+            }
+          }
+          Spacer(minLength: 3)
+          Text(active ? (runtime?.label ?? "En cours") : store.setupLabel(agent))
+            .font(.system(size: 8)).foregroundStyle(active ? Color.mint : HubStyle.muted)
+        }
+        .padding(.vertical, compact ? 3 : 4).contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .opacity(active ? 1 : 0.43)
+    }
+    .padding(.leading, compact ? 25 : 35)
+  }
+
+  private var unboundSection: some View {
+    VStack(alignment: .leading, spacing: compact ? 5 : 8) {
+      Text("SANS MOTEUR PIHUB").font(.system(size: 8, weight: .semibold)).tracking(1.1)
+        .foregroundStyle(HubStyle.muted.opacity(0.7))
+      ForEach(Array(unboundAgents.enumerated()), id: \.element.id) { index, agent in
+        agentBranch(agent, last: index == unboundAgents.count - 1)
+      }
+    }
+  }
+}
+
 struct DashboardWorkspace: View {
   @ObservedObject var store: HubStore
   let snapshot: HubSnapshot
   let edit: (HubInstance) -> Void
   var compact = false
   private var resources: [HubRuntime] { snapshot.providers + snapshot.agents }
-  private var prioritized: [HubInstance] {
-    (snapshot.config.providers + snapshot.config.agents).sorted {
-      (store.runtime($0)?.ready == true ? 0 : 1) < (store.runtime($1)?.ready == true ? 0 : 1)
-    }
-  }
-  private var visibleProviders: [HubInstance] {
-    let linkedIDs = Set(
-      snapshot.config.agents.compactMap {
-        $0.settings[store.adapter($0)?.routing?.provider_field ?? "provider"]
-      })
-    let important = snapshot.config.providers.filter {
-      store.runtime($0)?.ready == true || linkedIDs.contains($0.id)
-    }
-    return important.isEmpty ? Array(snapshot.config.providers.prefix(3)) : important
-  }
   var body: some View {
     VStack(alignment: .leading, spacing: compact ? 17 : 19) {
       HStack(spacing: compact ? 18 : 35) {
-        metric("PROVIDERS", "\(snapshot.config.providers.count)", .mint)
+        metric("MOTEURS", "\(snapshot.config.providers.count)", .mint)
         metric("AGENTS", "\(snapshot.config.agents.count)", HubStyle.accent)
         metric("MODÈLES", "\(snapshot.models.count)", .cyan)
         metric(
@@ -546,61 +710,11 @@ struct DashboardWorkspace: View {
         Eyebrow(
           title: "En un regard",
           detail: String(format: "%.1f Go RSS", resources.reduce(0) { $0 + $1.memory } / 1024))
-        ForEach(Array(prioritized.prefix(5))) { item in
-          Button {
-            edit(item)
-          } label: {
-            HStack {
-              AdapterMark(adapter: store.adapter(item), small: true)
-              Text(item.name).font(.system(size: 11))
-              Spacer()
-              Text(store.runtime(item)?.label ?? "Arrêté").font(.system(size: 9)).foregroundStyle(
-                store.runtime(item)?.ready == true ? Color.mint : HubStyle.muted)
-              Image(systemName: "chevron.right").font(.system(size: 8)).foregroundStyle(
-                HubStyle.muted)
-            }
-          }.buttonStyle(.plain)
-        }
+        InferenceTopology(store: store, snapshot: snapshot, edit: edit, compact: true)
       } else {
         HStack(alignment: .top, spacing: 28) {
-          VStack(alignment: .leading, spacing: 13) {
-            Eyebrow(title: "Circuit d’inférence", detail: "PROVIDER → AGENT")
-            ForEach(visibleProviders) { provider in
-              HStack(alignment: .top, spacing: 10) {
-                AdapterMark(adapter: store.adapter(provider), small: true)
-                VStack(alignment: .leading, spacing: 7) {
-                  Button(provider.name) { edit(provider) }.buttonStyle(.plain).font(
-                    .system(size: 12, weight: .semibold))
-                  let linked = snapshot.config.agents.filter {
-                    $0.settings[store.adapter($0)?.routing?.provider_field ?? "provider"]
-                      == provider.id
-                  }
-                  ForEach(linked) { agent in
-                    Button {
-                      edit(agent)
-                    } label: {
-                      Label(agent.name, systemImage: "arrow.turn.down.right").font(
-                        .system(size: 10)
-                      ).foregroundStyle(HubStyle.muted)
-                    }.buttonStyle(.plain)
-                  }
-                  if linked.isEmpty {
-                    Text("Aucun agent relié").font(.system(size: 9)).foregroundStyle(HubStyle.muted)
-                  }
-                }
-                Spacer()
-                Circle().fill(
-                  store.runtime(provider)?.ready == true ? Color.mint : HubStyle.muted.opacity(0.3)
-                ).frame(width: 5, height: 5)
-              }.padding(.vertical, 7)
-            }
-            if snapshot.config.providers.count > visibleProviders.count {
-              Button("+ \(snapshot.config.providers.count - visibleProviders.count) autres moteurs")
-              { store.page = "providers" }.font(.system(size: 10)).foregroundStyle(HubStyle.muted)
-            }
-            Button("Voir tous les agents →") { store.page = "agents" }.font(.system(size: 10))
-              .padding(.top, 6)
-          }.frame(maxWidth: .infinity, alignment: .leading)
+          InferenceTopology(store: store, snapshot: snapshot, edit: edit)
+            .frame(maxWidth: .infinity, alignment: .leading)
           Rectangle().fill(HubStyle.line).frame(width: 1)
           VStack(alignment: .leading, spacing: 18) {
             Eyebrow(title: "Mémoire des processus", detail: "RSS · Go")
@@ -776,7 +890,7 @@ struct ActivityWorkspace: View {
             HubStyle.muted)
         }
         Text(
-          "GPU par agent/provider : uniquement si son handler le mesure. Sinon — ; le GPU du Mac n’est pas attribué arbitrairement aux processus."
+          "GPU par agent/moteur : uniquement si son handler le mesure. Sinon — ; le GPU du Mac n’est pas attribué arbitrairement aux processus."
         )
         .font(.system(size: 9)).foregroundStyle(HubStyle.muted)
       } else {

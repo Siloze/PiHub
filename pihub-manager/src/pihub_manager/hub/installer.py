@@ -11,6 +11,22 @@ from pathlib import Path
 from .storage import ROOT, DATA, read, write, valid_id, locked
 
 
+def recipe_environment(recipe, values):
+    """Build a clean environment for third-party install recipes.
+
+    The PiHub worker itself may need PYTHONPATH to import from a source checkout,
+    but passing it to uv/pip leaks another Python's stdlib/site-packages into a
+    newly-created virtual environment. This notably breaks Python 3.14 builds
+    when Xcode's Python 3.9 paths are present.
+    """
+    environment = dict(os.environ, CI='1', GIT_TERMINAL_PROMPT='0')
+    for key in ('PYTHONHOME', 'PYTHONPATH', 'PYTHONSTARTUP', 'PYTHONUSERBASE', 'VIRTUAL_ENV'):
+        environment.pop(key, None)
+    for key, value in recipe.get('env', {}).items():
+        environment[key] = value.format_map(values)
+    return environment
+
+
 def extract(archive, destination):
     destination = destination.resolve()
     with tarfile.open(archive) as bundle:
@@ -45,9 +61,7 @@ def run(identifier):
                 raise ValueError('Prérequis manquant : ' + binary + '. Installez-le puis réessayez.')
         package.mkdir(parents=True, exist_ok=False)
         values = dict(package=str(package), root=str(ROOT), data=str(DATA), revision=job['revision'], repository=recipe.get('repository', ''), bundle=str(Path(recipe.get('recipe_source', '.')).parent))
-        environment = dict(os.environ, CI='1', GIT_TERMINAL_PROMPT='0')
-        for key, value in recipe.get('env', {}).items():
-            environment[key] = value.format_map(values)
+        environment = recipe_environment(recipe, values)
         steps = recipe['steps']
         for index, step in enumerate(steps):
             job.update(progress=index / len(steps), message=step['label'])

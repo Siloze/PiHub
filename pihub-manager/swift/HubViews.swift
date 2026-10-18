@@ -55,10 +55,11 @@ struct HubRootView: View {
   @State private var addKind: String?
   @State private var manifestImportKind: String?
   @State private var modelSheet = false
+  @State private var catalogSheet: CatalogSheet?
   @State private var pinned = false
   var pinChanged: (Bool) -> Void = { _ in }
   private let navigation = [
-    ("dashboard", "Vue d’ensemble", "square.grid.2x2"), ("providers", "Providers", "server.rack"),
+    ("dashboard", "Vue d’ensemble", "square.grid.2x2"), ("providers", "Moteurs", "server.rack"),
     ("agents", "Agents", "command"), ("models", "Modèles", "square.stack.3d.up"),
     ("catalog", "Explorer", "square.grid.3x3"), ("activity", "Activité", "waveform.path"),
     ("settings", "Réglages", "slider.horizontal.3"),
@@ -155,6 +156,28 @@ struct HubRootView: View {
       manifestImportKind = kind
       DispatchQueue.main.async { store.requestedImportKind = nil }
     }
+    .onReceive(store.$windowAction) { action in
+      guard let action else { return }
+      switch action {
+      case .showMain:
+        break
+      case .addInstance(let kind):
+        addKind = kind
+      case .editModels:
+        modelSheet = true
+      case .showLog:
+        break
+      case .catalogDetail(let id):
+        if let entry = store.snapshot?.catalog.entries.first(where: { $0.id == id }) {
+          catalogSheet = .detail(entry)
+        }
+      case .catalogGuide:
+        catalogSheet = .guide
+      case .catalogImport:
+        catalogSheet = .importJSON
+      }
+      DispatchQueue.main.async { store.windowAction = nil }
+    }
     .sheet(isPresented: Binding(get: { addKind != nil }, set: { if !$0 { addKind = nil } })) {
       AdapterPicker(store: store, kind: addKind ?? "provider") { instance in
         addKind = nil
@@ -192,6 +215,19 @@ struct HubRootView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
       }.padding(24).frame(width: 730, height: 490).preferredColorScheme(.dark)
+    }
+    .sheet(item: $catalogSheet) { presentation in
+      switch presentation {
+      case .detail(let entry):
+        CatalogDetail(store: store, entry: entry, compact: false, edit: { editing = $0 })
+      case .guide:
+        CatalogGuideView(store: store, compact: false) {
+          catalogSheet = nil
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { catalogSheet = .importJSON }
+        }
+      case .importJSON:
+        ManifestImportView(store: store, expectedKind: nil)
+      }
     }
   }
 
@@ -231,10 +267,16 @@ struct HubRootView: View {
           }.foregroundStyle(store.page == entry.0 ? Color.white : HubStyle.muted).padding(
             .horizontal, 12
           ).padding(.vertical, 12)
+            .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
+            .contentShape(Rectangle())
             .background(
               store.page == entry.0 ? HubStyle.accent.opacity(0.13) : Color.clear,
               in: RoundedRectangle(cornerRadius: 10))
-        }.buttonStyle(.plain).padding(.horizontal, 10).padding(.bottom, 3)
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle())
+        .padding(.horizontal, 10).padding(.bottom, 3)
       }
       Spacer()
       VStack(alignment: .leading, spacing: 9) {

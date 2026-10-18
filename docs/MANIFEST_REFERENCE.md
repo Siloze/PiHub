@@ -2,6 +2,8 @@
 
 [Manuel](README.md) · [Précédent : modding](EXTENSIONS.md) · [Suivant : recettes d’installation](CATALOG.md)
 
+> L’interface PiHub parle de **moteurs**. Cette référence conserve `provider` lorsqu’il s’agit d’une valeur, d’une clé JSON, d’une fonction ou d’un chemin Python du contrat public.
+
 Cette référence décrit le contrat lu par le code actuel. Consultez aussi le [schéma JSON](manifest.schema.json), le [schéma de `install`](catalog.schema.json) et les [manifestes livrés](../pihub-manager/integrations/).
 
 ## Emplacement et identité
@@ -55,7 +57,7 @@ Tous les champs possèdent `key`, `label`, `group`, `type` et `default`. **Les v
 | `multi_select` | Plusieurs propositions et ajout libre. Valeur CSV. | `options`, `option_help`. |
 | `toggle` | Interrupteur. | Valeurs `"true"` ou `"false"`. |
 | `model` | Identifiant saisi ou choisi dans le catalogue. | Filtrage selon `model_format`. |
-| `provider` | Sélection d’une instance de provider. | Contrat `routing`. |
+| `provider` | Sélection d’une instance de moteur. | Contrat `routing`. |
 | `file` | Chemin et sélection de fichier. | Utilisé notamment pour l’exécutable. |
 | `directory` | Chemin et sélection de dossier. | Utilisé notamment pour `project`. |
 
@@ -88,7 +90,7 @@ Le résultat reste une chaîne comme `read,write,outil-personnel`. Le widget ne 
 | `executable` | Chemin personnalisé prioritaire pour cette instance. |
 | `extra_args` | Tableau JSON de chaînes ajouté à la fin de la commande. |
 | `project` | Dossier de travail des helpers d’agents ; la racine du projet par défaut. |
-| `host`, `port` | Construction de l’endpoint et contrôle de port des providers communs. |
+| `host`, `port` | Construction de l’endpoint et contrôle de port des moteurs communs. |
 | `base_url` | URL explicite prioritaire sur host/port. |
 | `key_env` | Nom d’une variable contenant le secret d’API. |
 
@@ -145,7 +147,7 @@ Les accolades littérales d’un argument traité par le formatage Python doiven
 
 La valeur comparée est convertie en minuscules. `extra_args`, s’il est déclaré et renseigné, doit être un tableau JSON, par exemple `["--seed", "42"]`.
 
-## Métadonnées de provider
+## Métadonnées de moteur (`provider` dans le contrat)
 
 | Propriété | Usage |
 | --- | --- |
@@ -177,9 +179,9 @@ Ces propriétés ne créent aucune action automatiquement. Les capacités vienne
 
 | Clé | Rôle |
 | --- | --- |
-| `provider_field` | Réglage contenant l’ID du provider sélectionné. |
+| `provider_field` | Réglage contenant l’ID du moteur sélectionné. |
 | `model_field` | Réglage modèle de l’agent. |
-| `required` | Exige un provider dans les helpers de résolution. |
+| `required` | Exige un moteur dans les helpers de résolution. |
 | `unbound_value` / `unbound_label` | Choix permettant une configuration native lorsque l’intégration le prend en charge. |
 
 Le handler de l’agent doit traduire le résultat en flags, variables, fichiers ou appels SDK réellement compris par son programme.
@@ -219,7 +221,7 @@ Une action publique renvoie un dictionnaire sérialisable en JSON. Le hook `comm
 | `root` / `data` | Racine du projet et dossier privé. |
 | `runtime` | Helpers HTTP, processus, logs, Terminal et ouverture de fichiers. |
 | `table` | Snapshot de processus, quand il a été fourni. |
-| `provider()` | Provider lié via le contrat de routage. |
+| `provider()` | Moteur lié via le contrat de routage. |
 | `call(action, request)` | Appel d’un autre hook déclaré. |
 | `with_item(item)` | Contexte dérivé avec une copie d’instance. |
 
@@ -232,7 +234,7 @@ Les secrets peuvent se trouver dans l’environnement. Évitez de retourner ou j
 | `status` | Statut en lecture seule ; dictionnaire complet ou partiel. |
 | `command` | Commande de session terminal : argv, environnement, cwd. |
 | `prepare` | Préparation avant lancement supervisé et certains chemins de relance. |
-| `model_change` | Politique de réaction au changement de modèle du provider. |
+| `model_change` | Politique de réaction au changement de modèle du moteur. |
 | `after_install` | Guide optionnel lors de la création d’instance par save. |
 
 Ces hooks sont retirés des menus publics et ne sont pas des actions directes de l’API de gestion.
@@ -282,9 +284,9 @@ def model_change(ctx, request):
     }
 ```
 
-La politique est consultée en lecture seule avec le modèle cible et des informations sur le provider. Son action doit elle-même être déclarée et disponible.
+La politique est consultée en lecture seule avec le modèle cible et des informations sur le moteur. Son action doit elle-même être déclarée et disponible.
 
-Le planner ne met pas à jour les agents ayant un modèle fixe. Il attend la disponibilité du modèle cible côté provider avant d’autoriser l’application aux agents sélectionnés. Une action de mise à jour reçoit notamment le modèle cible ; elle doit réellement respecter la promesse qu’elle annonce.
+Le planner ne met pas à jour les agents ayant un modèle fixe. Il attend la disponibilité du modèle cible côté moteur avant d’autoriser l’application aux agents sélectionnés. Une action de mise à jour reçoit notamment le modèle cible ; elle doit réellement respecter la promesse qu’elle annonce.
 
 ## Présentation et journaux
 

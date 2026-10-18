@@ -83,11 +83,50 @@ def spawn(identifier, argv, environment, cwd=None):
 
 
 def stop(identifier):
-    record = owned(identifier, processes())
+    table = processes()
+    record = owned(identifier, table)
     if not record:
         raise ValueError('Aucun processus géré par PiHub. Une instance externe ne sera pas arrêtée.')
+    # Keep the exact descendants seen while the supervised launcher is alive.
+    # Some runtimes spawn a server in another process group; after their parent
+    # exits that server is re-parented and no longer appears in family().
+    # Identity checks below ensure PiHub never signals a recycled or unrelated
+    # PID.
+    descendants = {
+        row['pid']: row['identity'] for row in family(record['pid'], table)
+        if row['pid'] != record['pid']
+    }
     if record.get('group'):
-        os.killpg(record['pid'], signal.SIGTERM)
+        # A launcher can exit before the server it started.  The process group is
+        # the ownership boundary created by spawn(), so wait for the *whole*
+        # group rather than only the recorded launcher PID.  Otherwise a server
+        # can still own its port just after PiHub says it has stopped.
+        try:
+            os.killpg(record['pid'], signal.SIGTERM)
+        except ProcessLookupError:
+            record_path(identifier).unlink(missing_ok=True)
+            return
+        deadline = time.monotonic() + 6
+        while time.monotonic() < deadline:
+            if not group_alive(record['pid']):
+                terminate_descendants(descendants)
+                record_path(identifier).unlink(missing_ok=True)
+                return
+            time.sleep(.15)
+        # This is limited to the dedicated PiHub session/process group. It is
+        # deliberately never used for an adopted external process.
+        try:
+            os.killpg(record['pid'], signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        deadline = time.monotonic() + 3
+        while time.monotonic() < deadline:
+            if not group_alive(record['pid']):
+                terminate_descendants(descendants)
+                record_path(identifier).unlink(missing_ok=True)
+                return
+            time.sleep(.1)
+        raise ValueError('Arrêt demandé, mais un sous-processus PiHub est encore actif. Consultez le journal.')
     else:
         os.kill(record['pid'], signal.SIGTERM)
     deadline = time.monotonic() + 6
@@ -99,12 +138,67 @@ def stop(identifier):
     raise ValueError('Arrêt demandé, mais le processus ne s’est pas encore terminé. Consultez le journal.')
 
 
+def group_alive(pgid):
+    try:
+        os.killpg(int(pgid), 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def matching_descendants(descendants):
+    table = processes()
+    return [pid for pid, identity in descendants.items() if table.get(pid, {}).get('identity') == identity]
+
+
+def terminate_descendants(descendants):
+    """Stop children that escaped a managed launch group, by PID identity only."""
+    alive = matching_descendants(descendants)
+    for pid in alive:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+    deadline = time.monotonic() + 2
+    while alive and time.monotonic() < deadline:
+        time.sleep(.1)
+        alive = matching_descendants(descendants)
+    for pid in alive:
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+    deadline = time.monotonic() + 1
+    while matching_descendants(descendants) and time.monotonic() < deadline:
+        time.sleep(.1)
+
+
 def port_free(host, port):
     with socket.socket() as sock:
         try:
             sock.bind((host, int(port)))
         except OSError:
             raise ValueError(f'Le port {port} est occupé ou l’adresse {host} est invalide.')
+
+
+def wait_port_free(host, port, timeout=3):
+    """Wait briefly for a port released by an owned process group.
+
+    It avoids a race between a successful stop and the kernel making the
+    listener available to the next start.  It never kills or probes a process
+    by name; bind remains the source of truth.
+    """
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            port_free(host, port)
+            return
+        except ValueError:
+            if time.monotonic() >= deadline:
+                raise ValueError(f'Le port {port} est toujours utilisé après l’arrêt. Un processus externe le retient peut-être.')
+            time.sleep(.1)
 
 
 def terminal(identifier):

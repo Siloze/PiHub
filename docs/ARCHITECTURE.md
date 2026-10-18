@@ -2,6 +2,8 @@
 
 [Manuel](README.md) · [Précédent : installation des runtimes](CATALOG.md) · [Suivant : développement](DEVELOPMENT.md)
 
+> Dans ce schéma interne, `provider` est le nom de contrat historique ; l’interface utilisateur l’affiche comme **moteur**.
+
 ## Les couches du manager
 
 PiHub associe une interface SwiftUI native, un backend Python et des dossiers d’intégration.
@@ -107,7 +109,7 @@ Les programmes tiers peuvent aussi avoir leurs propres homes. Par exemple, le ha
 | `runtime.py` | Processus, HTTP, ports, journaux et lancement Terminal. |
 | `integrations/__init__.py` | Contexte des hooks, chargement et capacités. |
 | `integrations/agents/common.py` | Helpers réutilisables de sessions d’agents. |
-| `integrations/providers/common.py` | Helpers réutilisables HTTP et cycle de vie des providers. |
+| `integrations/providers/common.py` | Helpers réutilisables HTTP et cycle de vie des moteurs. |
 | `catalog.py` / `installer.py` | Projection Explorer et worker de recettes. |
 | `bundles.py` / `customization.py` | Import/export et copies personnelles d’intégrations. |
 | `model_changes.py` / `relations.py` | Propositions de mise à jour et relations de modèles. |
@@ -130,7 +132,7 @@ Quitter l’interface ne revient pas à arrêter tous les runtimes. Les opérati
 
 Les formulaires travaillent sur un brouillon. Enregistrer écrit la configuration. Appliquer un changement à un processus actif nécessite une action adaptée.
 
-Pour un changement de modèle provider, le planner :
+Pour un changement de modèle de moteur, le planner :
 
 1. mémorise la cible ;
 2. découvre les agents liés par le contrat de routage ;

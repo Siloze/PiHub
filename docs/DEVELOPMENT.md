@@ -23,7 +23,7 @@ make manager-reload
 
 | Changement | Emplacement |
 | --- | --- |
-| Ajouter un provider ou un agent | `pihub-manager/integrations/<id>/`. |
+| Ajouter un moteur ou un agent | `pihub-manager/integrations/<id>/`. Le manifeste conserve `kind: "provider"` pour un moteur. |
 | Paramètre ou action spécifique | Manifeste et handler de cette intégration. |
 | Type de contrôle générique | `HubField` dans `HubModels.swift`, rendu dans `HubEditors.swift`, validation et schéma. |
 | Menu d’actions | `swift/IntegrationActions.swift`. |
@@ -69,7 +69,7 @@ Réponse :
 
 Le contenu de `data` dépend de l’action. En cas d’erreur, `ok` vaut `false` et `error` contient le message. Les handlers ne doivent pas polluer la sortie standard du transport avec du texte de debug ; utilisez les journaux ou une exception exploitable.
 
-Cette API sert à l’intégration et au diagnostic. Le parcours normal des opérations de providers, agents et modèles reste l’interface.
+Cette API sert à l’intégration et au diagnostic. Le parcours normal des opérations de moteurs, agents et modèles reste l’interface.
 
 ## Vérifier un plugin
 

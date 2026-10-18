@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-private enum CatalogSheet: Identifiable {
+enum CatalogSheet: Identifiable {
   case detail(CatalogEntry)
   case guide
   case importJSON
@@ -18,6 +18,7 @@ struct CatalogWorkspace: View {
   @ObservedObject var store: HubStore
   var compact = false
   let edit: (HubInstance) -> Void
+  var openInWindow: ((HubWindowAction) -> Void)?
   @State private var search = ""
   @State private var kind = "all"
   @State private var installedOnly = false
@@ -37,7 +38,7 @@ struct CatalogWorkspace: View {
       HStack {
         Picker("Catégorie", selection: $kind) {
           Text("Tout").tag("all")
-          Text("Providers").tag("provider")
+          Text("Moteurs").tag("provider")
           Text("Agents").tag("agent")
         }.pickerStyle(.segmented).labelsHidden().frame(maxWidth: compact ? .infinity : 280)
         Spacer(minLength: 10)
@@ -45,11 +46,11 @@ struct CatalogWorkspace: View {
           "Instances configurées, JSON personnel ou runtime détecté")
       }
       HStack(spacing: 10) {
-        Button { sheet = .guide } label: {
+        Button { present(.catalogGuide) { sheet = .guide } } label: {
           Label("Guide pas à pas", systemImage: "map")
         }.buttonStyle(.plain).foregroundStyle(HubStyle.accent)
         Spacer()
-        Button { sheet = .importJSON } label: {
+        Button { present(.catalogImport) { sheet = .importJSON } } label: {
           Label("Importer une intégration", systemImage: "square.and.arrow.down")
         }.buttonStyle(.plain).foregroundStyle(HubStyle.muted)
       }.font(.system(size: compact ? 9 : 10, weight: .medium))
@@ -93,7 +94,7 @@ struct CatalogWorkspace: View {
         if !group.isEmpty {
           VStack(alignment: .leading, spacing: 0) {
             HStack {
-              Text(category == "provider" ? "Providers" : "Agents").font(
+              Text(category == "provider" ? "Moteurs" : "Agents").font(
                 .system(size: 12, weight: .semibold))
               Spacer()
               Text("\(group.count)").font(.system(size: 10, design: .monospaced)).foregroundStyle(
@@ -142,7 +143,7 @@ struct CatalogWorkspace: View {
     let matchingInstance = matchingInstance(entry)
     return HStack(spacing: 8) {
       Button {
-        sheet = .detail(entry)
+        present(.catalogDetail(entry.id)) { sheet = .detail(entry) }
       } label: {
         HStack(spacing: compact ? 11 : 16) {
           Image(systemName: entry.icon).font(.system(size: compact ? 16 : 22, weight: .regular))
@@ -168,7 +169,7 @@ struct CatalogWorkspace: View {
               Text(shortReference(entry)).font(.system(size: 10, design: .monospaced))
               if let instance = matchingInstance {
                 Text(store.setupLabel(instance)).font(.system(size: 9)).foregroundStyle(
-                  store.setupLabel(instance) == "Exécutable absent" ? .orange : HubStyle.muted
+                  store.setupLabel(instance).contains("configurer") || store.setupLabel(instance) == "Exécutable absent" ? .orange : HubStyle.muted
                 ).lineLimit(1)
               }
             }.frame(width: 100, alignment: .trailing)
@@ -187,6 +188,9 @@ struct CatalogWorkspace: View {
         }.buttonStyle(.plain).help("Configurer cette instance")
       }
     }
+  }
+  private func present(_ action: HubWindowAction, local: () -> Void) {
+    if compact, let openInWindow { openInWindow(action) } else { local() }
   }
   private func matchingInstance(_ entry: CatalogEntry) -> HubInstance? {
     let all = (store.snapshot?.config.providers ?? []) + (store.snapshot?.config.agents ?? [])
@@ -212,7 +216,7 @@ struct CatalogWorkspace: View {
         store.runtime(instance)?.ready == true
         ? "Instance · connectée"
         : setup == "Arrêté" ? "Instance · configurée" : "Instance · " + setup.lowercased()
-      color = setup == "Exécutable absent" ? .orange : .mint
+      color = setup.contains("configurer") || setup == "Exécutable absent" ? .orange : .mint
     } else if template?.source == "personal" {
       label = "JSON personnel · sans instance"
       color = .mint
@@ -294,7 +298,7 @@ struct CatalogDetail: View {
               Label("Instance : " + store.setupLabel(instance), systemImage: "slider.horizontal.3")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(
-                  store.setupLabel(instance) == "Exécutable absent" ? .orange : HubStyle.muted)
+                  store.setupLabel(instance).contains("configurer") || store.setupLabel(instance) == "Exécutable absent" ? .orange : HubStyle.muted)
               Text("\(instance.name) · \(instance.id)").font(.system(size: 9, design: .monospaced))
                 .foregroundStyle(HubStyle.muted).textSelection(.enabled)
             } else {
@@ -494,7 +498,7 @@ struct CatalogGuideView: View {
       points: [
         ("Runtime déjà détecté", "Configurez l’instance existante ; PiHub recherche le chemin personnalisé, les candidats du manifeste et le PATH."),
         ("Runtime absent", "Installez-le depuis sa fiche si une recette est disponible, ou fournissez votre propre exécutable."),
-        ("Après installation", "Retournez dans Provider/Agent → Configurer pour vérifier le chemin, le port et le modèle."),
+        ("Après installation", "Retournez dans Moteurs/Agents → Configurer pour vérifier le chemin, le port et le modèle."),
       ]),
     GuideStep(
       eyebrow: "03 · EXÉCUTABLE PERSONNEL",
@@ -502,7 +506,7 @@ struct CatalogGuideView: View {
       detail: "Chaque instance conserve ses propres réglages. Renseigner son exécutable ne modifie pas le template partagé et permet d’utiliser une build ou une installation atypique.",
       icon: "terminal",
       points: [
-        ("Où le saisir", "Provider ou Agent → Configurer → section Exécutable / intégration et lancement."),
+        ("Où le saisir", "Moteur ou Agent → Configurer → section Exécutable / intégration et lancement."),
         ("Quel format", "Chemin absolu vers le binaire, par exemple /opt/homebrew/bin/llama-server."),
         ("Candidats", "Ce sont des suggestions de détection (PATH, chemins connus, manifeste), pas votre chemin personnalisé."),
       ]),
@@ -512,7 +516,7 @@ struct CatalogGuideView: View {
       detail: "Le squelette dans l’importateur est le méta-modèle de départ. Les champs créent les réglages, la commande lance le runtime, et les handlers ajoutent des capacités spécifiques. Les handlers sont optionnels.",
       icon: "curlybraces",
       points: [
-        ("Essentiels", "api_version, id unique, kind (provider/agent), name et description."),
+        ("Essentiels", "api_version, id unique, kind (provider/agent), name et description. Dans l’interface, provider est appelé moteur."),
         ("Lancement", "executables et command ; utilisez {executable}, {port} et les clés de settings dans les arguments."),
         ("Réglages / actions", "Chaque intégration est un dossier : manifest.json décrit les réglages, les handlers et la recette install optionnelle. Les fichiers Python sont fournis dans le même dossier."),
       ]),

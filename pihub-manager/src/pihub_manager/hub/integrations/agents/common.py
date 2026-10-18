@@ -20,11 +20,11 @@ def resolved(ctx, request=None):
     if provider:
         state = Context(provider, ctx.current, ctx.registry).call('status')
         if not state.get('ready'):
-            raise ValueError('Le provider sélectionné doit être prêt avant de lancer l’agent.')
+            raise ValueError('Le moteur sélectionné doit être prêt avant de lancer l’agent.')
         configured = provider['settings'].get('model', '') if ctx.registry[provider['adapter']].get('multi_model') else ''
         settings[model_field] = request.get('model') or settings.get(model_field) or configured or state.get('model') or provider['settings'].get('model', '')
     elif routing.get('required'):
-        raise ValueError('Sélectionnez un provider PiHub.')
+        raise ValueError('Sélectionnez un moteur PiHub.')
     return ctx.with_item(item), provider
 
 
@@ -55,10 +55,14 @@ def start(ctx, request):
 
 def stop(ctx, request):
     stopped = False
+    stopped_web = False
     for identifier in (ctx.item['id'], ctx.item['id'] + '-web'):
         if ctx.runtime.owned(identifier, ctx.runtime.processes()):
             ctx.runtime.stop(identifier)
             stopped = True
+            stopped_web = stopped_web or identifier.endswith('-web')
+    if stopped_web:
+        wait_web_port(ctx)
     if not stopped:
         raise ValueError('Aucune session gérée active.')
     return {'message': 'Sessions arrêtées.'}
@@ -90,7 +94,7 @@ def restart(ctx, request):
     stop(ctx, request)
     for mode in modes:
         ctx.call(mode, {'open_browser': False})
-    return {'message': 'Relance demandée avec le modèle actif du provider.'}
+    return {'message': 'Relance demandée avec le modèle actif du moteur.'}
 
 
 def external_pid(ctx, table=None):
@@ -142,4 +146,12 @@ def model_change(ctx, request):
 
 def stop_web(ctx, request):
     ctx.runtime.stop(ctx.item['id'] + '-web')
+    wait_web_port(ctx)
     return {'message': 'Dashboard arrêté.'}
+
+
+def wait_web_port(ctx):
+    """Allow a managed agent web server to release its listener before reuse."""
+    port = ctx.item.get('settings', {}).get('web_port')
+    if port:
+        ctx.runtime.wait_port_free('127.0.0.1', port)

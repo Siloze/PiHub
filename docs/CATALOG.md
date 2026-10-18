@@ -26,7 +26,7 @@ Pour les endpoints sans exécutable, un statut prêt peut indiquer une connexion
 4. Choisissez une autre révision uniquement si la recette l’autorise.
 5. Lancez et confirmez l’installation.
 6. Suivez le job et son journal dans l’Explorateur.
-7. Configurez modèle, provider et options avant de démarrer.
+7. Configurez le modèle, le moteur (pour un agent) et les options avant de démarrer.
 
 Le worker prépare le runtime ; il ne démarre pas automatiquement le serveur ou l’agent.
 
