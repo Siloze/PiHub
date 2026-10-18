@@ -164,6 +164,23 @@ def add_instance(entry, executable='', manifest_override=None):
 
 def action(request):
     name = request['action']
+    if name == 'catalog-dismiss':
+        # Installation records are history, not configuration.  A failed (or
+        # cancelled) install must not keep surfacing after its cause was fixed.
+        # Never allow an active worker to be hidden: it still owns resources and
+        # must be cancelled or allowed to complete first.
+        identifier = valid_id(request['id'])
+        path = DATA / 'install-jobs' / (identifier + '.json')
+        job = read(path, {})
+        if not job:
+            raise ValueError('Installation introuvable.')
+        if job.get('state') in ('queued', 'running'):
+            raise ValueError('Annulez ou attendez cette installation avant de la masquer.')
+        path.unlink(missing_ok=True)
+        # The journal is only reachable from this history row. Remove it at the
+        # same time so resolved failures do not accumulate indefinitely.
+        path.with_suffix('.log').unlink(missing_ok=True)
+        return {'message': 'Historique d’installation retiré.'}
     if name == 'catalog-cancel':
         import signal
         from .runtime import processes

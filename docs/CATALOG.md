@@ -20,6 +20,8 @@ Pour les endpoints sans exécutable, un statut prêt peut indiquer une connexion
 
 ## Installer depuis l’interface
 
+![Fiche llama.cpp : référence, prérequis et bouton Installer](assets/pihub-install-moteur.png)
+
 1. Ouvrez la fiche de l’intégration.
 2. Vérifiez la référence et les prérequis.
 3. Dépliez les commandes d’installation si nécessaire.
@@ -29,6 +31,10 @@ Pour les endpoints sans exécutable, un statut prêt peut indiquer une connexion
 7. Configurez le modèle, le moteur (pour un agent) et les options avant de démarrer.
 
 Le worker prépare le runtime ; il ne démarre pas automatiquement le serveur ou l’agent.
+
+Le même parcours est disponible pour les agents :
+
+![Fiche d’installation de l’agent Hermes](assets/pihub-install-agent.png)
 
 ```mermaid
 flowchart TD

@@ -208,6 +208,7 @@
   },
   "health": "/health",
   "model_format": "gguf",
+  "model_value": "path",
   "process_signatures": [
     "llama-server"
   ],

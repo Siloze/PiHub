@@ -1,18 +1,28 @@
 <p align="center">
-  <img src="docs/assets/pihub-interface.svg" alt="Aperçu de l’interface PiHub" width="100%">
+  <img src="docs/assets/topbar-overlay.png" alt="PiHub ouvert depuis son icône dans la barre des menus macOS" width="680">
 </p>
 
 # PiHub
 
-### Lancez vos moteurs locaux, choisissez leurs modèles et reliez-les à vos agents — depuis la barre des menus macOS.
+### Tous vos moteurs, agents et modèles dans un centre de contrôle, depuis la barre des menus macOS.
 
-PiHub est un centre de contrôle local pour une machine IA personnelle. Il ne remplace ni Splash, ni llama.cpp, ni Ollama, ni vos agents : il les organise. Vous voyez ce qui tourne, quel modèle est réellement servi, quel agent dépend de quel moteur, et vous gardez vos réglages dans des fichiers locaux lisibles.
+PiHub rassemble vos outils IA dans une seule application macOS. Téléchargez et installez vos moteurs et agents depuis **Explorer**, configurez-les, lancez-les et suivez leur consommation. Choisissez les modèles de chaque moteur, reliez vos agents et retrouvez leurs terminaux, interfaces web et journaux au même endroit.
+
+<sub>Les modèles déjà présents peuvent être référencés, configurés et affectés aux moteurs. Leur téléchargement depuis PiHub n’est pas encore disponible.</sub>
+
+Le panneau compact reste à portée de clic dans la barre des menus ; la fenêtre complète donne accès à tous les réglages. Le résumé montre ce qui tourne, quel modèle est servi et les agents rattachés à chaque moteur.
 
 [Installer PiHub](docs/INSTALLATION.md) · [Faire son premier parcours](docs/USAGE.md) · [Voir tous les guides](docs/README.md) · [Créer ou importer une intégration](docs/EXTENSIONS.md)
 
 > Dans l’interface et le manuel, un **moteur** est ce qui sert un modèle à des agents : Splash, llama.cpp, MLX LM, Ollama ou une API compatible. Le code et les manifests gardent le mot technique `provider` pour préserver leur contrat public.
 
 ## En 30 secondes
+
+<p align="center">
+  <img src="docs/assets/pihub-overlay.png" alt="Panneau compact PiHub : résumé et arbre moteur vers agents" width="350">
+</p>
+
+Le panneau compact garde vos moteurs et agents accessibles depuis la barre des menus. Le bouton en haut à droite ouvre la fenêtre complète.
 
 ```mermaid
 flowchart LR
@@ -38,6 +48,36 @@ Le résumé montre ensuite l’arbre `moteur → agents`, les modèles servis et
 | Savoir pourquoi un port reste pris | Ouvrez **Activité** ou **Journal** : PiHub suit ses groupes de processus et attend la libération du port à l’arrêt. |
 | Ajouter votre propre outil | Importez un dossier contenant `manifest.json` et, si nécessaire, des handlers Python. |
 | Partager une intégration | Exportez son dossier ; les exécutables, modèles, clés et sessions restent hors du paquet. |
+
+## Installer depuis l’application
+
+Dans **Explorer**, ouvrez la fiche d’un moteur ou d’un agent pour consulter sa source, sa version de référence et ses prérequis, puis lancer son installation. Si vous avez déjà l’exécutable, ajoutez simplement une instance et indiquez son chemin.
+
+**Un moteur : llama.cpp**
+
+![Fiche d’installation de llama.cpp dans PiHub](docs/assets/pihub-install-moteur.png)
+
+**Un agent : Hermes**
+
+![Fiche d’installation de Hermes dans PiHub](docs/assets/pihub-install-agent.png)
+
+## Moteurs, agents, modèles : tout au même endroit
+
+**Moteurs** — Lancez plusieurs moteurs, choisissez leurs modèles et configurez leurs ports et options.
+
+![Page Moteurs de PiHub](docs/assets/pihub-moteurs.png)
+
+**Agents** — Retrouvez leurs rattachements, leur état et leurs actions de lancement et de configuration.
+
+![Page Agents de PiHub](docs/assets/pihub-agents.png)
+
+**Modèles** — Parcourez vos modèles locaux, leurs formats et les moteurs et agents qui les utilisent.
+
+![Page Modèles de PiHub](docs/assets/pihub-modeles.png)
+
+**Résumé** — L’arbre relie moteurs, modèles servis et agents ; les outils arrêtés restent visibles en grisé.
+
+![Fenêtre complète de PiHub avec l’arbre des rattachements](docs/assets/pihub-window.png)
 
 ## Votre premier succès
 
@@ -67,6 +107,8 @@ Le résumé montre ensuite l’arbre `moteur → agents`, les modèles servis et
 - Il ne stocke pas vos clés dans un manifeste. Référencez une variable d’environnement.
 
 ## Inclus aujourd’hui
+
+![Explorer : catalogue des moteurs et agents disponibles](docs/assets/pihub-explorer.png)
 
 | Catégorie | Intégrations livrées |
 | --- | --- |

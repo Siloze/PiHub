@@ -400,6 +400,14 @@ struct ModelsWorkspace: View {
   private func tint(for model: HubModel) -> Color {
     model.format.lowercased() == "gguf" ? .orange : .cyan
   }
+  private func selectedModelValue(_ model: HubModel, for provider: HubInstance) -> String {
+    switch store.adapter(provider)?.model_value {
+    case "path", "path_or_id":
+      return model.path.isEmpty ? model.id : model.path
+    default:
+      return model.id
+    }
+  }
   private var filtered: [HubModel] {
     snapshot.models.filter {
       (format == "all" || $0.format == format)
@@ -471,7 +479,7 @@ struct ModelsWorkspace: View {
               Button(provider.name) {
                 var draft = provider
                 draft.settings[store.adapter(provider)?.model_field ?? "model"] =
-                  model.path.isEmpty ? model.id : model.path
+                  selectedModelValue(model, for: provider)
                 store.perform("save", payload: ["item": HubBridge.object(draft)])
               }
             }

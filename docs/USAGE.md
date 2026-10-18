@@ -2,7 +2,7 @@
 
 [Manuel](README.md) · [← Installation](INSTALLATION.md) · [Modèles →](MODELS.md)
 
-<img src="assets/pihub-interface.svg" alt="Résumé PiHub avec un moteur Splash et les agents qui y sont rattachés" width="100%">
+<img src="assets/pihub-window.png" alt="Capture réelle du résumé PiHub avec Splash et ses agents rattachés" width="100%">
 
 ## Lire l’interface
 
@@ -16,6 +16,8 @@
 | **Activité** | Lire les processus et ressources réellement observés. | CPU, RAM RSS, GPU lorsque disponible, PID et journal. |
 
 Le panneau de barre des menus et la fenêtre complète utilisent les mêmes données. Cliquez sur **Agrandir** dans le panneau pour ouvrir la fenêtre ; cliquez sur l’icône de repli dans la fenêtre pour revenir au panneau compact.
+
+<img src="assets/pihub-overlay.png" alt="Capture du panneau compact PiHub" width="350">
 
 > Dans les manifests et certains extraits techniques, « moteur » s’appelle `provider`. Ne renommez pas les clés JSON `provider`, `provider_field` ou `kind: "provider"`.
 

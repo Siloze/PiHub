@@ -22,6 +22,8 @@ class CatalogTests(unittest.TestCase):
     def tearDown(self):
         for key in ('config.json', 'model-changes.json'):
             (storage.DATA / key).unlink(missing_ok=True)
+        for path in (storage.DATA / 'install-jobs').glob('*'):
+            path.unlink(missing_ok=True)
 
     def test_fresh_workspace_has_no_instances_or_model_references(self):
         (storage.DATA / 'config.json').unlink(missing_ok=True)
@@ -169,6 +171,24 @@ class CatalogTests(unittest.TestCase):
             service.action({'action': 'catalog-install', 'id': 'splash', 'confirmed': True, 'revision': '9.9.9', 'acknowledge_unverified': True})
         with self.assertRaisesRegex(ValueError, 'invalide'):
             service.action({'action': 'catalog-install', 'id': 'pi', 'confirmed': True, 'revision': '--bad'})
+
+    def test_resolved_installation_failure_can_be_dismissed_with_its_log(self):
+        identifier = 'hermes-fixed-fixture'
+        job_path = storage.DATA / 'install-jobs' / (identifier + '.json')
+        storage.write(job_path, {'id': identifier, 'state': 'failed', 'message': 'ancienne erreur'})
+        job_path.with_suffix('.log').write_text('diagnostic', encoding='utf-8')
+        response = service.action({'action': 'catalog-dismiss', 'id': identifier})
+        self.assertIn('retiré', response['message'])
+        self.assertFalse(job_path.exists())
+        self.assertFalse(job_path.with_suffix('.log').exists())
+        self.assertNotIn(identifier, [job['id'] for job in catalog.snapshot()['jobs']])
+
+    def test_active_installation_cannot_be_dismissed(self):
+        identifier = 'active-install-fixture'
+        path = storage.DATA / 'install-jobs' / (identifier + '.json')
+        storage.write(path, {'id': identifier, 'state': 'running'})
+        with self.assertRaisesRegex(ValueError, 'Annulez'):
+            service.action({'action': 'catalog-dismiss', 'id': identifier})
 
     def test_background_worker_installs_fixture_without_blocking_or_launching_it(self):
         entry = dict(id='install-fixture', adapter='install-fixture', kind='provider', name='Fixture', revision='1.0', verification='fixture', repository='', prerequisites=[], executable='{package}/runtime', manifest=dict(id='install-fixture', kind='provider', name='Fixture', icon='cpu', color='cyan', description='Test', fields=[dict(key='executable', label='Executable', group='Runtime', type='file', default='')], command=['{executable}'], executables=[], handlers={}), steps=[dict(label='Prepare isolated executable', argv=[sys.executable, '-c', 'import shutil,sys,time; time.sleep(.2); shutil.copy("/bin/echo",sys.argv[1])', '{package}/runtime'])])

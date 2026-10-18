@@ -74,6 +74,13 @@ struct CatalogWorkspace: View {
                     Text("Annuler").font(.system(size: 9))
                   }.buttonStyle(.plain).foregroundStyle(HubStyle.accent)
                 }
+                if job.state == "failed" || job.state == "cancelled" {
+                  Button {
+                    store.perform("catalog-dismiss", id: job.id)
+                  } label: {
+                    Image(systemName: "xmark.circle")
+                  }.buttonStyle(.borderless).help("Effacer cette erreur résolue")
+                }
                 Button {
                   store.perform("catalog-log", id: job.id)
                 } label: {
@@ -262,7 +269,7 @@ struct CatalogDetail: View {
           HubStyle.accent)
         VStack(alignment: .leading, spacing: 4) {
           Text(entry.name).font(.system(size: 23, weight: .semibold))
-          Text(entry.kind == "agent" ? "AGENT · CATALOGUE" : "PROVIDER · CATALOGUE")
+          Text(entry.kind == "agent" ? "AGENT · CATALOGUE" : "MOTEUR · CATALOGUE")
             .font(.system(size: 8, weight: .semibold)).tracking(1).foregroundStyle(HubStyle.muted)
         }
         Spacer()

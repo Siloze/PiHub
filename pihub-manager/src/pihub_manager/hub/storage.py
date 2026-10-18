@@ -57,7 +57,7 @@ def validate_manifest(item):
     valid_id(item.get('id'))
     if item.get('kind') not in ('provider', 'agent') or item.get('api_version', 1) != 1:
         raise ValueError('Type ou version de manifeste invalide.')
-    for key in ('name', 'icon', 'color', 'description', 'model_field', 'health', 'model_format'):
+    for key in ('name', 'icon', 'color', 'description', 'model_field', 'health', 'model_format', 'model_value'):
         if key in item and (not isinstance(item[key], str) or '\x00' in item[key]):
             raise ValueError('Texte requis : ' + key)
     if 'name' in item and not item['name'].strip():

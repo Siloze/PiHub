@@ -4,7 +4,7 @@
 
 PiHub se prend en main dans l’application, pas en mémorisant une liste de commandes. Les guides ci-dessous indiquent ce que vous devez cliquer, ce que vous devez renseigner, puis ce que vous devez constater avant de passer à l’étape suivante.
 
-<img src="assets/pihub-interface.svg" alt="Aperçu de la fenêtre PiHub : moteurs, agents et ressources" width="100%">
+<img src="assets/pihub-window.png" alt="Capture réelle de la fenêtre PiHub : moteurs, agents et ressources" width="100%">
 
 > **Vocabulaire :** l’interface appelle **moteur** ce que les manifests appellent `provider`. Les mots `provider`, `kind: "provider"` et `provider_field` restent dans les extraits JSON/Python car ils font partie du format public.
 

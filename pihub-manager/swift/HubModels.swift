@@ -28,6 +28,10 @@ struct HubAdapter: Codable, Identifiable {
   let external: Bool?
   let modes: [String]?
   let model_format: String?
+  /// How this runtime consumes a catalogue reference: its remote ID (default),
+  /// its local path, or either. Kept in the manifest rather than inferred from
+  /// a file extension.
+  let model_value: String?
   let action_labels: [String: String]?
   let primary_actions: [String]?
   let editor_hints: [String: String]?

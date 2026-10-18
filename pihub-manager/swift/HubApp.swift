@@ -69,8 +69,14 @@ final class HubAppDelegate: NSObject, NSApplicationDelegate {
         window?.contentViewController = NSHostingController(rootView: compactContent())
         window?.setContentSize(NSSize(width: 420, height: 620))
       }
+      if let detail = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--capture-install=") }) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+          self?.store.windowAction = .catalogDetail(String(detail.dropFirst(18)))
+        }
+      }
       DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-        guard let view = self?.window?.contentView else { return }
+        guard let window = self?.window,
+          let view = (window.attachedSheet ?? window).contentView else { return }
         view.layoutSubtreeIfNeeded()
         if let image = view.bitmapImageRepForCachingDisplay(in: view.bounds) {
           view.cacheDisplay(in: view.bounds, to: image)
@@ -78,7 +84,9 @@ final class HubAppDelegate: NSObject, NSApplicationDelegate {
             try? data.write(to: URL(fileURLWithPath: String(capture.dropFirst(10))))
           }
         }
-        NSApp.terminate(nil)
+        // A presented sheet can defer the normal application termination.
+        // Capture launches are disposable and must also finish in that case.
+        exit(EXIT_SUCCESS)
       }
     }
   }

@@ -52,6 +52,23 @@ struct InstanceEditor: View {
       format == nil || format == "any" || $0.format == format
     }
   }
+  private func selectedModelValue(_ model: HubModel) -> String {
+    let target: HubAdapter?
+    if adapter?.kind == "provider" {
+      target = adapter
+    } else {
+      let selected = store.snapshot?.config.providers.first {
+        $0.id == item.settings[adapter?.routing?.provider_field ?? "provider"]
+      }
+      target = selected.flatMap { store.adapter($0) }
+    }
+    switch target?.model_value {
+    case "path", "path_or_id":
+      return model.path.isEmpty ? model.id : model.path
+    default:
+      return model.id
+    }
+  }
   var body: some View {
     VStack(spacing: 0) {
       HStack(spacing: 14) {
@@ -276,7 +293,7 @@ struct InstanceEditor: View {
           Menu("Choisir dans le catalogue") {
             ForEach(compatibleModels) { model in
               Button(model.name + " · " + model.format.uppercased()) {
-                value.wrappedValue = model.path.isEmpty ? model.id : model.path
+                value.wrappedValue = selectedModelValue(model)
               }
             }
             if adapter?.kind == "provider", let runtime = store.runtime(item) {
