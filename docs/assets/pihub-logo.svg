@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>PiHub</title>
+  <desc>La fleur PiHub : sept disques violets sur fond transparent.</desc>
+  <g fill="#A78BFA">
+    <circle cx="256" cy="256" r="56"/>
+    <circle cx="256" cy="132" r="56"/>
+    <circle cx="363.387" cy="194" r="56"/>
+    <circle cx="363.387" cy="318" r="56"/>
+    <circle cx="256" cy="380" r="56"/>
+    <circle cx="148.613" cy="318" r="56"/>
+    <circle cx="148.613" cy="194" r="56"/>
+  </g>
+</svg>

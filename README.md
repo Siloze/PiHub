@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="docs/assets/pihub-logo.png" alt="Logo PiHub" width="96">
+</p>
+
+<p align="center">
   <img src="docs/assets/topbar-overlay.png" alt="PiHub ouvert depuis son icône dans la barre des menus macOS" width="680">
 </p>
 
