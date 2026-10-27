@@ -10,9 +10,9 @@
 
 ### Tous vos moteurs, agents et modèles dans un centre de contrôle, depuis la barre des menus macOS.
 
-PiHub rassemble vos outils IA dans une seule application macOS. Téléchargez et installez vos moteurs et agents depuis **Explorer**, configurez-les, lancez-les et suivez leur consommation. Choisissez les modèles de chaque moteur, reliez vos agents et retrouvez leurs terminaux, interfaces web et journaux au même endroit.
+PiHub rassemble vos outils IA dans une seule application macOS. Téléchargez et installez vos moteurs, agents et modèles depuis **Explorer**, configurez-les, lancez-les et suivez leur consommation. Choisissez les modèles de chaque moteur, reliez vos agents et retrouvez leurs terminaux, interfaces web et journaux au même endroit.
 
-<sub>Les modèles déjà présents peuvent être référencés, configurés et affectés aux moteurs. Leur téléchargement depuis PiHub n’est pas encore disponible.</sub>
+<sub>Les modèles déjà présents peuvent être référencés, configurés et affectés aux moteurs. Leur téléchargement depuis PiHub est disponible.</sub>
 
 Le panneau compact reste à portée de clic dans la barre des menus ; la fenêtre complète donne accès à tous les réglages. Le résumé montre ce qui tourne, quel modèle est servi et les agents rattachés à chaque moteur.
 
@@ -46,11 +46,11 @@ Le résumé montre ensuite l’arbre `moteur → agents`, les modèles servis et
 
 | Vous voulez… | Dans PiHub |
 | --- | --- |
-| Utiliser Splash, llama.cpp, MLX LM ou Ollama | Ouvrez **Explorer**, lisez la fiche, puis installez ou configurez le runtime déjà présent. |
+| Utiliser Splash, llama.cpp, MLX LM, Ollama et plus | Ouvrez **Explorer**, lisez la fiche, puis installez ou configurez le runtime déjà présent. |
 | Connecter LM Studio, vLLM ou un serveur distant | Ajoutez **API compatible**, renseignez l’URL `/v1`, le modèle et éventuellement le nom de variable de clé. |
-| Lancer Pi, Hermes ou Codex sur votre moteur local | Ajoutez l’agent, choisissez le moteur dans **Routage**, puis cliquez sur son action de lancement. |
-| Savoir pourquoi un port reste pris | Ouvrez **Activité** ou **Journal** : PiHub suit ses groupes de processus et attend la libération du port à l’arrêt. |
-| Ajouter votre propre outil | Importez un dossier contenant `manifest.json` et, si nécessaire, des handlers Python. |
+| Lancer Pi, Herme, Codex ou plus sur votre moteur local | Ajoutez l’agent, choisissez le moteur dans **Routage**, puis cliquez sur son action de lancement. |
+| Ouvrez **Activité** ou **Journal** : PiHub suit ses groupes de processus |
+| Ajoutez votre propre outil | Importez un dossier contenant `manifest.json` et, si nécessaire, des handlers Python. |
 | Partager une intégration | Exportez son dossier ; les exécutables, modèles, clés et sessions restent hors du paquet. |
 
 ## Installer depuis l’application
